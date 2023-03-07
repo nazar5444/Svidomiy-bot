@@ -5,13 +5,11 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
-
 import alert
 import btns
 import db
 from db import db_start
 
-print("glebiks")
 
 async def on_startup(_):
     await db_start()
