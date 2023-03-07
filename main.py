@@ -11,6 +11,7 @@ import btns
 import db
 from db import db_start
 
+print("glebiks")
 
 async def on_startup(_):
     await db_start()
