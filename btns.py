@@ -1,0 +1,44 @@
+from aiogram import types
+
+keyboard_plt = types.ReplyKeyboardMarkup(resize_keyboard=True)
+button = types.KeyboardButton("Найближче укриття 💣", request_location=True)
+button1 = types.KeyboardButton("Повідомити про окупанта ⚔")
+button2 = types.KeyboardButton("Повітряна тривога 🔈")
+button3 = types.KeyboardButton("Перша допомога 🏥")
+button4 = types.KeyboardButton("Тех.підтримка 🛠")
+keyboard_plt.add(button, button1, button2, button3, button4)
+
+keyboard_back = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+button_back = types.KeyboardButton(text="Назад ◀️")
+keyboard_back.add(button_back)
+
+menu = types.ReplyKeyboardMarkup(resize_keyboard=True)
+button_menu = types.KeyboardButton("Повернутися в меню ◀️")
+menu.add(button_menu)
+
+menu_ocup_back = types.ReplyKeyboardMarkup(resize_keyboard=True)
+button_menu_ocup_back = types.KeyboardButton("Вибрати інший спосіб ◀️")
+menu_ocup_back.add(button_menu_ocup_back)
+
+keyboard_aid = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+button_injury = types.KeyboardButton(text="У людини травма")
+button_bad = types.KeyboardButton(text="Людині погано")
+keyboard_aid.add(button_injury, button_bad, button_menu)
+
+ocupant_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+button_ocupant_photo = types.KeyboardButton("Прикріпити фото 📷")
+button_ocupant_geo = types.KeyboardButton("Прикріпити геолокацію 📍")
+button_check = types.KeyboardButton("Перевірити інформацію ✅")
+button_menu = types.KeyboardButton("Повернутися в меню ◀️")
+ocupant_menu.add(button_ocupant_photo, button_ocupant_geo, button_check, button_menu)
+
+ocupant_geo_sent = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+button_ocupant_geo_send = types.KeyboardButton("Надіслати геолокацію 📍", request_location=True)
+button_ocupant_sposib = types.KeyboardButton("Вибрати інший спосіб ◀️   ")
+ocupant_geo_sent.add(button_ocupant_geo_send, button_ocupant_sposib)
+
+send = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+send_btn = types.KeyboardButton("Надіслати ✉️")
+del_btn = types.KeyboardButton("Видалити 🗑")
+button_ocupant_sposib = types.KeyboardButton("Вибрати інший спосіб ◀️")
+send.add(send_btn, del_btn, button_ocupant_sposib)
