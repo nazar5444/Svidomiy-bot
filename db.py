@@ -7,10 +7,10 @@ async def db_start():
     global conn, cur
 
     conn = psycopg2.connect(
-        database="users.db",
-        user="postgres",
-        password="root",
-        # host="your_host",
+        database="users",
+        user="svidomyi",
+        password="lfjfFFids565",
+        host="161.35.92.164",
         port="5432"
     )
     cur = conn.cursor()
