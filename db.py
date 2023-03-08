@@ -16,7 +16,7 @@ async def db_start():
     cur = conn.cursor()
 
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS users(user_id INTEGER PRIMARY KEY, phone_number TEXT, verified TEXT, photo TEXT, "
+        "CREATE TABLE IF NOT EXISTS users(user_id INTEGER PRIMARY KEY, city_id TEXT, phone_number TEXT, verified TEXT, photo TEXT, "
         "geo_lat TEXT, geo_long TEXT, banned INTEGER, description TEXT)")
     conn.commit()
 
@@ -39,6 +39,11 @@ async def edit_profile(user_id, phone_number):
 
 async def change_profile(user_id):
     cur.execute("UPDATE users SET verified = 'True' WHERE user_id = '{}'".format(user_id))
+    conn.commit()
+
+
+async def del_profile(user_id):
+    cur.execute("UPDATE users SET verified = 'False' WHERE user_id = '{}'".format(user_id))
     conn.commit()
 
 
@@ -131,3 +136,15 @@ async def description_get(user_id):
 async def description_delete(user_id):
     cur.execute("UPDATE users SET description = NULL WHERE user_id = %s", (user_id,))
     conn.commit()
+
+
+async def city_add(user_id, city_id):
+    cur.execute("UPDATE users SET city_id = %s WHERE user_id = %s", (city_id, user_id))
+    conn.commit()
+
+
+async def city_get(user_id):
+    cur.execute("SELECT city_id FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    conn.commit()
+    return row[0]

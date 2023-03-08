@@ -106,6 +106,7 @@ maps_list = {
     "23": "https://www.google.com/maps/d/u/0/viewer?hl=ru&mid=1VJ4yH6VbKhqRP6Z1W3DB7vKhpXM&ll={latt}%2C{long}&z=17"
 }
 
+
 city_list = {"1": "Вінницьку",
              "2": "Волинську",
              "3": "Дніпропетровську",

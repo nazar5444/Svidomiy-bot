@@ -10,17 +10,16 @@ import btns
 import db
 from db import db_start
 
-
-async def on_startup(_):
-    await db_start()
-
-
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
 
 bot = Bot(token=TOKEN, parse_mode="html")
 storage = MemoryStorage()
 dp = Dispatcher(bot=bot, storage=storage)
 
+
+async def on_startup(_):
+    await db_start()
+    
 
 class States(StatesGroup):
     city_list = State()
@@ -33,13 +32,13 @@ class States(StatesGroup):
     description = State()
 
 
-@dp.message_handler(Text(equals="Повітряна тривога 🔈"), state="*")
-async def back(message: types.Message, state: FSMContext):
+@dp.message_handler(Text(equals="Тривога 🔈"), state="*")
+async def back(message: types.Message):
     keyboard_map = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Мапа тривог", url="https://alerts.in.ua/")
     keyboard_map.add(ban_button)
-    id_res = await state.get_data()
-    city_req_id = requests.get(alert.link.format(city_id=id_res["city_state_id"]), headers=alert.headers)
+    city_req_id = requests.get(alert.link.format(city_id=await db.city_get(user_id=message.from_user.id)),
+                               headers=alert.headers)
     if "false" in city_req_id.text:
         await bot.send_message(message.from_user.id,
                                "Повітряна тривога у вашому місті відсутня. Для більш точної інформації натисніть на кнопку нижче:",
@@ -56,18 +55,20 @@ async def back(message: types.Message):
         await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.keyboard_aid)
 
 
-@dp.message_handler(Text(equals="Повернутися в меню ◀️"), state="*")
+@dp.message_handler(Text(equals="Повернутися в головне меню ◀️"), state="*")
 async def back(message: types.Message):
-    if message.text == "Повернутися в меню ◀️":
+    if message.text == "Повернутися в головне меню ◀️":
         await bot.send_message(message.from_user.id, "Ви повернулися в меню.", reply_markup=btns.keyboard_plt)
         await States.geo_bomb.set()
 
 
 async def send_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data):
     keyboard_ban = types.InlineKeyboardMarkup()
-    ban_button = types.InlineKeyboardButton(text="Заблокувати", callback_data=f"ban:{user_id}")
-    unban_button = types.InlineKeyboardButton(text="Розблокувати", callback_data=f"unban:{user_id}")
-    keyboard_ban.add(ban_button, unban_button)
+    ban_button = types.InlineKeyboardButton(text="Заблокувати 🔒", callback_data=f"ban:{user_id}")
+    unban_button = types.InlineKeyboardButton(text="Розблокувати 🔓", callback_data=f"unban:{user_id}")
+    deldat_button = types.InlineKeyboardButton(text="Очистити 🗑", callback_data=f"deldata:{user_id}")
+    send_button = types.InlineKeyboardButton(text="Надіслано ✅", callback_data=f"sendmessage:{user_id}")
+    keyboard_ban.add(ban_button, unban_button, deldat_button, send_button)
     admin_id = 5517129511
     lat = geo_lat_data
     long = geo_long_data
@@ -77,18 +78,36 @@ async def send_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, descri
                          reply_markup=keyboard_ban)
 
 
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith('sendmessage:'))
+async def send_user(callback_query: types.CallbackQuery):
+    _, user_id = callback_query.data.split(':')
+    await bot.delete_message(callback_query.message.chat.id, callback_query.message.message_id)
+    await bot.answer_callback_query(callback_query.id, text="Данні видалено. ✅")
+
+
+@dp.callback_query_handler(lambda c: c.data and c.data.startswith('deldata:'))
+async def del_user(callback_query: types.CallbackQuery):
+    _, user_id = callback_query.data.split(':')
+    await db.photo_delete(user_id=user_id)
+    await db.lat_delete(user_id=user_id)
+    await db.long_delete(user_id=user_id)
+    await db.description_delete(user_id=user_id)
+    await db.del_profile(user_id=user_id)
+    await bot.answer_callback_query(callback_query.id, text="Данні були видалені. 🗑")
+
+
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('ban:'))
 async def ban_user(callback_query: types.CallbackQuery):
     _, user_id = callback_query.data.split(':')
     await db.ban_user(user_id=user_id)
-    await bot.answer_callback_query(callback_query.id, text="Користувач був заблокований.")
+    await bot.answer_callback_query(callback_query.id, text="Користувач був заблокований. 🔒")
 
 
 @dp.callback_query_handler(lambda c: c.data and c.data.startswith('unban:'))
 async def unban_user(callback_query: types.CallbackQuery):
     _, user_id = callback_query.data.split(':')
     await db.unban_user(user_id=user_id)
-    await bot.answer_callback_query(callback_query.id, text="Користувач був розблокований.")
+    await bot.answer_callback_query(callback_query.id, text="Користувач був розблокований. 🔓")
 
 
 @dp.message_handler(Text(equals="Перевірити інформацію ✅"), state="*")
@@ -155,9 +174,9 @@ async def back(message: types.Message):
         await message.delete()
 
 
-@dp.message_handler(Text(equals="Повідомити про окупанта ⚔"), state="*")
+@dp.message_handler(Text(equals="Окупант ⚔"), state="*")
 async def phone(message: types.Message):
-    if message.text == "Повідомити про окупанта ⚔" and await db.verif_profile(user_id=message.from_user.id) == "False":
+    if message.text == "Окупант ⚔" and await db.verif_profile(user_id=message.from_user.id) == "False":
         keyboard_phone = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = types.KeyboardButton(text="Надіслати телефон 📞", request_contact=True)
         keyboard_phone.add(button_phone, btns.button_menu)
@@ -169,9 +188,9 @@ async def phone(message: types.Message):
         await bot.send_message(message.chat.id, "Будьте обережні!", reply_markup=btns.ocupant_menu)
 
 
-@dp.message_handler(Text(equals="Прикріпити фото 📷"), state="*")
+@dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state="*")
 async def back(message: types.Message):
-    if message.text == "Прикріпити фото 📷":
+    if message.text == "Прикріпити фотографію 📷":
         await States.photo.set()
         await bot.send_message(message.chat.id, "Надішліть фото окупантів:", reply_markup=btns.menu_ocup_back)
 
@@ -227,15 +246,15 @@ async def contact(message: types.Message, state: FSMContext, number=None) -> Non
 
 
 @dp.message_handler(content_types=['location'], state=States.geo_bomb)
-async def handle_location(message: types.Message, state: FSMContext):
-    url_res = await state.get_data()
+async def handle_location(message: types.Message):
+    city_data = await db.city_get(user_id=message.from_user.id)
+    maps_url = alert.maps_list.get(city_data)
+    print(maps_url)
     geobtn = InlineKeyboardButton(text="Найближче укриття",
-                                  url=url_res["maps_list"].format(
+                                  url=maps_url.format(
                                       latt=message.location.latitude, long=message.location.longitude))
     geo = InlineKeyboardMarkup().add(geobtn)
-    lat = message.location.latitude
-    lon = message.location.longitude
-    reply = "Ваше положення за:\nШиротою: {}\nДовготою: {}".format(lat, lon)
+    reply = "Ви можете знайти найближче за посиланням яке знаходиться нижче."
     await message.answer(reply, reply_markup=geo)
 
 
@@ -295,10 +314,6 @@ async def prewprs_btn(callback: types.CallbackQuery):
 
 @dp.callback_query_handler()
 async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
-    maps_url = alert.maps_list.get(callback.data)
-    await States.maps_list.set()
-    await state.update_data(maps_list=maps_url)
-
     city_url = alert.city_list.get(callback.data)
     await States.city_list.set()
     await state.update_data(city_list=city_url)
@@ -306,6 +321,7 @@ async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
     city_id_callback = callback.data
     await States.city_state_id.set()
     await state.update_data(city_state_id=city_id_callback)
+    await db.city_add(user_id=callback.from_user.id, city_id=city_id_callback)
 
     await callback.message.answer(
         text="Ви обрали {} область! Меню з корисною інформацією знаходиться нижче.".format(city_url),
@@ -378,9 +394,9 @@ async def phone(message: types.Message):
                                reply_markup=btns.keyboard_aid)
 
 
-@dp.message_handler(Text(equals="Відповів(ла) ✅"), state="*")
+@dp.message_handler(Text(equals="Відповіла ✅"), state="*")
 async def phone(message: types.Message):
-    if message.text == "Відповів(ла) ✅":
+    if message.text == "Відповіла ✅":
         await bot.send_message(message.from_user.id, "Дякуємо, що не залишилися байдужими.",
                                reply_markup=btns.keyboard_aid)
 
@@ -414,7 +430,7 @@ async def phone(message: types.Message):
 async def phone(message: types.Message):
     if message.text == "Так ✅":
         tak = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-        button_tak = types.KeyboardButton(text="Викликав(ла) швидку 🏥")
+        button_tak = types.KeyboardButton(text="Викликали швидку 🏥")
         button_backd = types.KeyboardButton(text="Назад ◀️")
         tak.add(button_tak, button_backd)
         await bot.send_message(message.from_user.id,
@@ -427,9 +443,9 @@ async def phone(message: types.Message):
                                reply_markup=tak)
 
 
-@dp.message_handler(Text(equals="Викликав(ла) швидку 🏥"), state="*")
+@dp.message_handler(Text(equals="Викликали швидку 🏥"), state="*")
 async def phone(message: types.Message):
-    if message.text == "Викликав(ла) швидку 🏥":
+    if message.text == "Викликали швидку 🏥":
         tak = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button_tak = types.KeyboardButton(text="Швидка приїхала 🚑")
         button_sv = types.KeyboardButton(text="Втрата свідомості")
@@ -470,7 +486,7 @@ async def phone(message: types.Message):
     if message.text == "У людини травма":
         takg = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button_ffg = types.KeyboardButton(text="Сильна кровотеча 🩸")
-        button_ffh = types.KeyboardButton(text="Зламав(ла) кінцівку 🦴")
+        button_ffh = types.KeyboardButton(text="Зламала кінцівку 🦴")
         button_backi = types.KeyboardButton(text="Назад ◀️")
         takg.add(button_ffg, button_ffh, button_backi)
         await bot.send_message(message.from_user.id, "Виберіть потрібний пункт:", reply_markup=takg)
@@ -496,9 +512,9 @@ async def phone(message: types.Message):
                                reply_markup=takg)
 
 
-@dp.message_handler(Text(equals="Зламав(ла) кінцівку 🦴"), state="*")
+@dp.message_handler(Text(equals="Зламала кінцівку 🦴"), state="*")
 async def phone(message: types.Message):
-    if message.text == "Зламав(ла) кінцівку 🦴":
+    if message.text == "Зламала кінцівку 🦴":
         takg = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button_ffg = types.KeyboardButton(text="Швидка приїхала 🚑")
         button_backk = types.KeyboardButton(text="Назад ◀️")
