@@ -19,7 +19,7 @@ dp = Dispatcher(bot=bot, storage=storage)
 
 async def on_startup(_):
     await db_start()
-    
+
 
 class States(StatesGroup):
     city_list = State()
@@ -33,6 +33,29 @@ class States(StatesGroup):
 
 
 @dp.message_handler(Text(equals="Тривога 🔈"), state="*")
+async def back(message: types.Message):
+    if message.text == "Тривога 🔈":
+        keyboard_aid = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+        button_injury = types.KeyboardButton(text="Стан тривоги ⏰")
+        button_bad = types.KeyboardButton(text="Повідомлення 💬")
+        button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
+        keyboard_aid.add(button_bad, button_injury, button_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
+                               reply_markup=keyboard_aid)
+
+
+@dp.message_handler(Text(equals="Повідомлення 💬"), state="*")
+async def smstrivoga(message: types.Message):
+    keyboard_ban = types.InlineKeyboardMarkup()
+    on_button = types.InlineKeyboardButton(text="Вкл.", callback_data="sms_on")
+    off_button = types.InlineKeyboardButton(text="Викл.", callback_data="sms_off")
+    keyboard_ban.add(on_button, off_button)
+    await bot.send_message(message.from_user.id,
+                           "Для контакту з Адміністрацією чат-боту напишіть на контакти вказані нижче.",
+                           reply_markup=keyboard_ban)
+
+
+@dp.message_handler(Text(equals="Стан тривоги ⏰"), state="*")
 async def back(message: types.Message):
     keyboard_map = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Мапа тривог", url="https://alerts.in.ua/")
@@ -249,7 +272,6 @@ async def contact(message: types.Message, state: FSMContext, number=None) -> Non
 async def handle_location(message: types.Message):
     city_data = await db.city_get(user_id=message.from_user.id)
     maps_url = alert.maps_list.get(city_data)
-    print(maps_url)
     geobtn = InlineKeyboardButton(text="Найближче укриття",
                                   url=maps_url.format(
                                       latt=message.location.latitude, long=message.location.longitude))
@@ -280,23 +302,57 @@ async def handle(message: types.Message) -> None:
         await message.delete()
 
 
-@dp.callback_query_handler(text="nextb")
+@dp.callback_query_handler(text="nextb", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
-    city8 = InlineKeyboardButton(text="Донецька обл.", callback_data="4")
-    city9 = InlineKeyboardButton(text="Вінницька обл.", callback_data="1")
-    city10 = InlineKeyboardButton(text="Сумська обл.", callback_data="17")
-    city11 = InlineKeyboardButton(text="Львівська обл.", callback_data="12")
-    city12 = InlineKeyboardButton(text="Черкаська обл.", callback_data="22")
-    city13 = InlineKeyboardButton(text="Хмельницька обл.", callback_data="21")
-    city14 = InlineKeyboardButton(text="Волинська обл.", callback_data="2")
-    city15 = InlineKeyboardButton(text="Закарпатська обл.", callback_data="6")
-    prev1_btn = InlineKeyboardButton(text="Назад ⬅", callback_data="prewb")
+    city8 = InlineKeyboardButton(text="Запорізька обл.", callback_data="7")
+    city9 = InlineKeyboardButton(text="Луганська обл.", callback_data="11")
+    city10 = InlineKeyboardButton(text="Донецька обл.", callback_data="4")
+    city11 = InlineKeyboardButton(text="Вінницька обл.", callback_data="1")
+    city12 = InlineKeyboardButton(text="Миколаївська обл.", callback_data="13")
+    city13 = InlineKeyboardButton(text="Кропивницька обл.", callback_data="10")
+    city14 = InlineKeyboardButton(text="Сумська обл.", callback_data="17")
+    city15 = InlineKeyboardButton(text="Львівська обл.", callback_data="12")
+    prev1_btn = InlineKeyboardButton(text="⬅ Назад", callback_data="prewb")
+    prev2_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nextb1")
     citichoose2 = InlineKeyboardMarkup(row_width=2).add(city8, city9, city10, city11, city12, city13, city14, city15,
+                                                        prev1_btn, prev2_btn)
+    await callback.message.edit_reply_markup(reply_markup=citichoose2)
+
+
+@dp.callback_query_handler(text="nextb1", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    city16 = InlineKeyboardButton(text="Черкаська обл.", callback_data="22")
+    city17 = InlineKeyboardButton(text="Хмельницька обл.", callback_data="21")
+    city18 = InlineKeyboardButton(text="Волинська обл.", callback_data="2")
+    city19 = InlineKeyboardButton(text="Рівненська обл.", callback_data="16")
+    city20 = InlineKeyboardButton(text="Івано-Франківська обл.", callback_data="8")
+    city21 = InlineKeyboardButton(text="Тернопільська обл.", callback_data="18")
+    city22 = InlineKeyboardButton(text="Закарпатська обл.", callback_data="6")
+    city23 = InlineKeyboardButton(text="Чернівецька обл.", callback_data="23")
+    prev1_btn = InlineKeyboardButton(text="⬅ Назад", callback_data="prewb1")
+    citichoose2 = InlineKeyboardMarkup(row_width=2).add(city16, city17, city18, city19, city20, city21, city22, city23,
                                                         prev1_btn)
     await callback.message.edit_reply_markup(reply_markup=citichoose2)
 
 
-@dp.callback_query_handler(text="prewb")
+@dp.callback_query_handler(text="prewb1", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    city8 = InlineKeyboardButton(text="Запорізька обл.", callback_data="7")
+    city9 = InlineKeyboardButton(text="Луганська обл.", callback_data="11")
+    city10 = InlineKeyboardButton(text="Донецька обл.", callback_data="4")
+    city11 = InlineKeyboardButton(text="Вінницька обл.", callback_data="1")
+    city12 = InlineKeyboardButton(text="Миколаївська обл.", callback_data="13")
+    city13 = InlineKeyboardButton(text="Кропивницька обл.", callback_data="10")
+    city14 = InlineKeyboardButton(text="Сумська обл.", callback_data="17")
+    city15 = InlineKeyboardButton(text="Львівська обл.", callback_data="12")
+    prev1_btn = InlineKeyboardButton(text="⬅ Назад", callback_data="prewb")
+    prev2_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nextb1")
+    citichoose2 = InlineKeyboardMarkup(row_width=2).add(city8, city9, city10, city11, city12, city13, city14, city15,
+                                                        prev1_btn, prev2_btn)
+    await callback.message.edit_reply_markup(reply_markup=citichoose2)
+
+
+@dp.callback_query_handler(text="prewb", state="*")
 async def prewprs_btn(callback: types.CallbackQuery):
     city = InlineKeyboardButton(text="Одеська обл.", callback_data="14")
     city1 = InlineKeyboardButton(text="Дніпропетровська обл.", callback_data="3")
@@ -312,7 +368,7 @@ async def prewprs_btn(callback: types.CallbackQuery):
     await callback.message.edit_reply_markup(reply_markup=citichoose2)
 
 
-@dp.callback_query_handler()
+@dp.callback_query_handler(state="*")
 async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
     city_url = alert.city_list.get(callback.data)
     await States.city_list.set()
@@ -332,12 +388,12 @@ async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
 @dp.message_handler(Text(equals="Тех.підтримка 🛠"), state="*")
 async def back(message: types.Message):
     if message.text == "Тех.підтримка 🛠":
-        keyboard_sup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        keyboard_sup.add(btns.button_menu)
+        keyboard_ban = types.InlineKeyboardMarkup()
+        ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
+        keyboard_ban.add(ban_button)
         await bot.send_message(message.from_user.id,
-                               "Для контакту з Адміністрацією цього чат боту напишіть нам на контакти вказані нижче. "
-                               "\nКонтакти: "
-                               "https://t.me/Svidomiy_Admin", reply_markup=keyboard_sup)
+                               "Для контакту з Адміністрацією чат-боту напишіть на контакти вказані нижче.",
+                               reply_markup=keyboard_ban)
 
 
 @dp.message_handler(Text(equals="Перша допомога 🏥"), state="*")
@@ -583,6 +639,29 @@ async def phone(message: types.Message):
                                'було кому зустріти.',
                                reply_markup=takg)
 
+
+async def send_alert_start_notification(message: types.Message):
+    await bot.send_message(message.from_user.id, "Повітряна тривога! Негайно перейдіть до укриття!")
+
+
+async def send_alert_end_notification(message: types.Message):
+    await bot.send_message(message.from_user.id, "Відбій повітряної тривоги!")
+
+
+while True:
+    @dp.message_handler(state="*")
+    async def handle_message(message: types.Message):
+        update_url = requests.get(alert.link.format(city_id=await db.city_get(user_id=message.from_user.id)),
+                                  headers=alert.headers)
+        alert_state = update_url.text
+
+        if alert_state == 'true':
+            await send_alert_start_notification(message)
+        elif alert_state == 'false':
+            await send_alert_end_notification(message)
+
+
+    break
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
