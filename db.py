@@ -16,13 +16,14 @@ async def db_start():
     cur = conn.cursor()
 
     cur.execute(
-        "CREATE TABLE IF NOT EXISTS users(user_id INTEGER PRIMARY KEY, city_id TEXT, phone_number TEXT, verified TEXT, photo TEXT, "
+        "CREATE TABLE IF NOT EXISTS users(user_id BIGINT PRIMARY KEY, city_id TEXT, phone_number TEXT, verified TEXT, photo TEXT, "
         "geo_lat TEXT, geo_long TEXT, banned INTEGER, description TEXT)")
     conn.commit()
 
 
 async def profile(user_id, verified):
-    cur.execute("SELECT 1 FROM users WHERE  user_id = '{key}'".format(key=user_id))
+    cur.execute("SELECT 1 FROM users WHERE user_id = %s", (user_id,))
+
     user = cur.fetchone()
     if not user:
         cur.execute(

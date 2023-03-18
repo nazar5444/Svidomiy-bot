@@ -8,6 +8,7 @@ from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentTyp
 import alert
 import btns
 import db
+import text
 from db import db_start
 
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
@@ -32,6 +33,13 @@ class States(StatesGroup):
     description = State()
 
 
+@dp.message_handler(Text(equals="Пункт незламності ⚡️"), state="*")
+async def phone(message: types.Message):
+    if message.text == "Пункт незламності ⚡️":
+        nezlam = await db.city_get(user_id=message.from_user.id)
+        await bot.send_message(message.from_user.id, text.city_text.get(nezlam))
+
+
 @dp.message_handler(Text(equals="Тривога 🔈"), state="*")
 async def back(message: types.Message):
     if message.text == "Тривога 🔈":
@@ -51,7 +59,7 @@ async def smstrivoga(message: types.Message):
     off_button = types.InlineKeyboardButton(text="Викл.", callback_data="sms_off")
     keyboard_ban.add(on_button, off_button)
     await bot.send_message(message.from_user.id,
-                           "Для контакту з Адміністрацією чат-боту напишіть на контакти вказані нижче.",
+                           "За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті.",
                            reply_markup=keyboard_ban)
 
 
@@ -639,29 +647,6 @@ async def phone(message: types.Message):
                                'було кому зустріти.',
                                reply_markup=takg)
 
-
-async def send_alert_start_notification(message: types.Message):
-    await bot.send_message(message.from_user.id, "Повітряна тривога! Негайно перейдіть до укриття!")
-
-
-async def send_alert_end_notification(message: types.Message):
-    await bot.send_message(message.from_user.id, "Відбій повітряної тривоги!")
-
-
-while True:
-    @dp.message_handler(state="*")
-    async def handle_message(message: types.Message):
-        update_url = requests.get(alert.link.format(city_id=await db.city_get(user_id=message.from_user.id)),
-                                  headers=alert.headers)
-        alert_state = update_url.text
-
-        if alert_state == 'true':
-            await send_alert_start_notification(message)
-        elif alert_state == 'false':
-            await send_alert_end_notification(message)
-
-
-    break
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
