@@ -1,10 +1,14 @@
-import requests
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
+
+import time
+import requests
+import threading
+
 import alert
 import btns
 import db
@@ -50,17 +54,6 @@ async def back(message: types.Message):
         keyboard_aid.add(button_bad, button_injury, button_menu)
         await bot.send_message(message.from_user.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
                                reply_markup=keyboard_aid)
-
-
-@dp.message_handler(Text(equals="Повідомлення 💬"), state="*")
-async def smstrivoga(message: types.Message):
-    keyboard_ban = types.InlineKeyboardMarkup()
-    on_button = types.InlineKeyboardButton(text="Вкл.", callback_data="sms_on")
-    off_button = types.InlineKeyboardButton(text="Викл.", callback_data="sms_off")
-    keyboard_ban.add(on_button, off_button)
-    await bot.send_message(message.from_user.id,
-                           "За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті.",
-                           reply_markup=keyboard_ban)
 
 
 @dp.message_handler(Text(equals="Стан тривоги ⏰"), state="*")
@@ -308,6 +301,29 @@ async def handle(message: types.Message) -> None:
         await message.answer(reply, reply_markup=citichoose)
         await db.profile(user_id=message.from_user.id, verified="False")
         await message.delete()
+
+
+@dp.message_handler(Text(equals="Повідомлення 💬"), state="*")
+async def smstrivoga(message: types.Message):
+    keyboard_ban = types.InlineKeyboardMarkup()
+    on_button = types.InlineKeyboardButton(text="Вкл. 🔔", callback_data="alert_on")
+    off_button = types.InlineKeyboardButton(text="Викл. 🔕", callback_data="alert_off")
+    keyboard_ban.add(on_button, off_button)
+    await bot.send_message(message.from_user.id,
+                           "За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті.",
+                           reply_markup=keyboard_ban)
+
+
+@dp.callback_query_handler(text="alert_on", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    await db.alert_on(user_id=callback.from_user.id)
+    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу включено. 🔔")
+
+
+@dp.callback_query_handler(text="alert_off", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    await db.alert_off(user_id=callback.from_user.id)
+    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу виключено. 🔕")
 
 
 @dp.callback_query_handler(text="nextb", state="*")
@@ -647,6 +663,36 @@ async def phone(message: types.Message):
                                'було кому зустріти.',
                                reply_markup=takg)
 
+
+def poll_alerts():
+    url = 'https://alerts.com.ua/api/states'
+    headers = alert.headers
+
+    while True:
+        time.sleep(10)
+        req = requests.get(url=url, headers=headers).json()
+
+        alarm_dict2 = {}
+        alarm_dict = {city['id']: city['alert'] for city in req['states']}
+
+        if alarm_dict2 != alarm_dict:
+            diff = [key for key in alarm_dict if key in alarm_dict2 and alarm_dict[key] != alarm_dict2[key]]
+            print(diff)
+
+            for id in diff:
+                res = db.cur.execute("SELECT user_id FROM users WHERE city_id=%s", (str(id),))
+                id_list_changes = db.cur.fetchall()
+
+                for user_id in id_list_changes:
+                    if alarm_dict[id] is False:
+                        print(user_id[0], 'Відбій повітряної тривоги')
+                    elif alarm_dict[id] is True:
+                        print(user_id[0], 'Повітряна тривога')
+            alarm_dict2 = alarm_dict
+
+
+thread = threading.Thread(target=poll_alerts)
+thread.start()
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

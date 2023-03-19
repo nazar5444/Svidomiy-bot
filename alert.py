@@ -1,11 +1,7 @@
-import time
 import requests
-
-import db
 
 headers = {"X-API-Key": "5ebcb2ed4d4fd3d565a3d4ae028c0242c5e583d8"}
 link = "https://alerts.com.ua/api/states/{city_id}"
-req = requests.get(url='https://alerts.com.ua/api/states', headers=headers).json()
 
 vin_id = requests.get("https://alerts.com.ua/api/states/1", headers=headers)
 luck_id = requests.get("https://alerts.com.ua/api/states/2", headers=headers)
@@ -183,26 +179,3 @@ city_list = {"1": "Вінницьку",
              "23": "Чернівецьку",
              "24": "Чернігівську",
              }
-
-while True:
-    time.sleep(10)
-
-    alarm_dict2 = {}
-    alarm_dict = {city['id']: city['alert'] for city in req['states']}
-
-    if alarm_dict2 != alarm_dict:
-        alarm_dict2 = alarm_dict
-
-    diff = [key for key in alarm_dict if key in alarm_dict2 and alarm_dict[key] != alarm_dict2[key]]
-
-    for id in diff:
-        res = db.cur.execute("SELECT user_id FROM users WHERE city_id=%s", (str(id),))
-        id_list_changes = db.cur.fetchall()
-        print(id, id_list_changes)
-
-        for user_id in id_list_changes:
-            # send_alert_notification()
-            if alarm_dict[id] is False:
-                print(user_id[0], 'Відбій повітряної тривоги')
-            elif alarm_dict[id] is True:
-                print(user_id[0], 'Повітряна тривога')

@@ -17,7 +17,7 @@ async def db_start():
 
     cur.execute(
         "CREATE TABLE IF NOT EXISTS users(user_id BIGINT PRIMARY KEY, city_id TEXT, phone_number TEXT, verified TEXT, photo TEXT, "
-        "geo_lat TEXT, geo_long TEXT, banned INTEGER, description TEXT)")
+        "geo_lat TEXT, geo_long TEXT, banned INTEGER, alert_state INTEGER, description TEXT)")
     conn.commit()
 
 
@@ -27,9 +27,9 @@ async def profile(user_id, verified):
     user = cur.fetchone()
     if not user:
         cur.execute(
-            "INSERT INTO users (user_id, phone_number, verified, photo, geo_lat, geo_long, banned, description) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
-            (user_id, " ", verified, '', " ", "", 0, ""))
+            "INSERT INTO users (user_id, phone_number, verified, photo, geo_lat, geo_long, banned, alert_state, description) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (user_id, " ", verified, '', " ", "", 0, 0, ""))
     conn.commit()
 
 
@@ -149,3 +149,19 @@ async def city_get(user_id):
     row = cur.fetchone()
     conn.commit()
     return row[0]
+
+
+async def alert_on(user_id):
+    cur.execute("UPDATE users SET alert_state = 1 WHERE user_id = %s", (user_id,))
+    conn.commit()
+
+
+async def alert_off(user_id):
+    cur.execute("UPDATE users SET alert_state = 0 WHERE user_id = %s", (user_id,))
+    conn.commit()
+
+
+def is_alert_on(user_id):
+    cur.execute("SELECT alert_state FROM users WHERE user_id = %s", (user_id,))
+    result = cur.fetchone()
+    return result is not None and result[0] == 1
