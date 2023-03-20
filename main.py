@@ -677,7 +677,8 @@ def poll_alerts():
 
         if alarm_dict2 != alarm_dict:
             diff = [key for key in alarm_dict if key in alarm_dict2 and alarm_dict[key] != alarm_dict2[key]]
-            print(diff)
+            if diff:
+                print(diff)
 
             for id in diff:
                 res = db.cur.execute("SELECT user_id FROM users WHERE city_id=%s", (str(id),))
