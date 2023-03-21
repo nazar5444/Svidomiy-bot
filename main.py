@@ -1,13 +1,10 @@
+import requests
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
-
-import time
-import requests
-import threading
 
 import alert
 import btns
@@ -663,37 +660,6 @@ async def phone(message: types.Message):
                                'було кому зустріти.',
                                reply_markup=takg)
 
-
-def poll_alerts():
-    url = 'https://alerts.com.ua/api/states'
-    headers = alert.headers
-
-    while True:
-        time.sleep(10)
-        req = requests.get(url=url, headers=headers).json()
-
-        alarm_dict2 = {}
-        alarm_dict = {city['id']: city['alert'] for city in req['states']}
-
-        if alarm_dict2 != alarm_dict:
-            diff = [key for key in alarm_dict if key in alarm_dict2 and alarm_dict[key] != alarm_dict2[key]]
-            if diff:
-                print(diff)
-
-            for id in diff:
-                res = db.cur.execute("SELECT user_id FROM users WHERE city_id=%s", (str(id),))
-                id_list_changes = db.cur.fetchall()
-
-                for user_id in id_list_changes:
-                    if alarm_dict[id] is False:
-                        print(user_id[0], 'Відбій повітряної тривоги')
-                    elif alarm_dict[id] is True:
-                        print(user_id[0], 'Повітряна тривога')
-            alarm_dict2 = alarm_dict
-
-
-thread = threading.Thread(target=poll_alerts)
-thread.start()
 
 if __name__ == '__main__':
     executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
