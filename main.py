@@ -11,6 +11,7 @@ import btns
 import db
 import text
 from db import db_start
+from webapp import main
 
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
 
@@ -21,6 +22,7 @@ dp = Dispatcher(bot=bot, storage=storage)
 
 async def on_startup(_):
     await db_start()
+    await main()
 
 
 class States(StatesGroup):
