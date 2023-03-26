@@ -6,11 +6,16 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
 
+import torch
+import os
+from PIL import Image
+
 import alert
 import btns
 import db
 import text
 from db import db_start
+from detection import tokenizer, preprocess, model
 
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
 
@@ -24,6 +29,14 @@ async def on_startup(_):
 
 
 class States(StatesGroup):
+    description_bomb = State()
+    photo_bomb = State()
+    send_bomb_state = State()
+    bomb_geo = State()
+    ocup_send = State()
+    bomb_send = State()
+    back_bomb = State()
+    back_bad = State()
     city_list = State()
     maps_list = State()
     city_state_id = State()
@@ -32,13 +45,51 @@ class States(StatesGroup):
     geo_bomb = State()
     send_state = State()
     description = State()
+    bomb_photo = State()
 
 
-@dp.message_handler(Text(equals="Пункт незламності ⚡️"), state="*")
+@dp.message_handler(Text(equals="Незламність ⚡️"), state="*")
 async def phone(message: types.Message):
-    if message.text == "Пункт незламності ⚡️":
+    if message.text == "Незламність ⚡️":
         nezlam = await db.city_get(user_id=message.from_user.id)
         await bot.send_message(message.from_user.id, text.city_text.get(nezlam))
+
+
+@dp.message_handler(Text(equals="Повідомити ✉"), state="*")
+async def phone(message: types.Message):
+    if message.text == "Повідомити ✉" and await db.verif_profile(user_id=message.from_user.id) == "False":
+        keyboard_phone = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_phone = types.KeyboardButton(text="Повідомити ✉", request_contact=True)
+        keyboard_phone.add(button_phone, btns.button_menu)
+        await bot.send_message(message.from_user.id,
+                               'Щоб отримати доступ до цього меню ви повинні підтвердити свою особистість за допомогою '
+                               'номера телефона. Натисніть на кнопку "Надіслати телефон".',
+                               reply_markup=keyboard_phone)
+    else:
+        await bot.send_message(message.chat.id, "Будьте обережні!", reply_markup=btns.bomb_send_menu)
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Снаряд 💣"), state="*")
+async def back(message: types.Message):
+    if message.text == "Снаряд 💣":
+        await bot.send_message(message.chat.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
+                               reply_markup=btns.bomb_menu)
+
+
+@dp.message_handler(Text(equals="Перевірити ✅"), state="*")
+async def back(message: types.Message):
+    if message.text == "Перевірити ✅":
+        await bot.send_message(message.chat.id, "Надішліть фото снаряду.")
+        await States.bomb_photo.set()
+
+
+@dp.message_handler(Text(equals="Перевірити ✅"), state="*")
+async def back(message: types.Message):
+    if message.text == "Перевірити ✅":
+        await bot.send_message(message.chat.id, "Надішліть фото снаряду.", reply_markup=btns.keyboard_back)
+        await States.bomb_photo.set()
+        await States.back_bomb.set()
 
 
 @dp.message_handler(Text(equals="Тривога 🔈"), state="*")
@@ -70,10 +121,16 @@ async def back(message: types.Message):
                                reply_markup=keyboard_map)
 
 
-@dp.message_handler(Text(equals="Назад ◀️"), state="*")
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.back_bad)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.keyboard_aid)
+
+
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_send)
+async def back(message: types.Message):
+    if message.text == "Назад ◀️":
+        await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.bomb_menu)
 
 
 @dp.message_handler(Text(equals="Повернутися в головне меню ◀️"), state="*")
@@ -83,7 +140,7 @@ async def back(message: types.Message):
         await States.geo_bomb.set()
 
 
-async def send_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data):
+async def send_ocup_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data):
     keyboard_ban = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Заблокувати 🔒", callback_data=f"ban:{user_id}")
     unban_button = types.InlineKeyboardButton(text="Розблокувати 🔓", callback_data=f"unban:{user_id}")
@@ -96,6 +153,22 @@ async def send_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, descri
     dsc = description_data
     await bot.send_photo(chat_id=admin_id, photo=photo_data,
                          caption=f"User ID: {user_id}\n\nПоложення окупантів за:\nДовготою: {lat} \nШиротою: {long} \n\nОпис: {dsc}",
+                         reply_markup=keyboard_ban)
+
+
+async def send_bomb_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data):
+    keyboard_ban = types.InlineKeyboardMarkup()
+    ban_button = types.InlineKeyboardButton(text="Заблокувати 🔒", callback_data=f"ban:{user_id}")
+    unban_button = types.InlineKeyboardButton(text="Розблокувати 🔓", callback_data=f"unban:{user_id}")
+    deldat_button = types.InlineKeyboardButton(text="Очистити 🗑", callback_data=f"deldata:{user_id}")
+    send_button = types.InlineKeyboardButton(text="Надіслано ✅", callback_data=f"sendmessage:{user_id}")
+    keyboard_ban.add(ban_button, unban_button, deldat_button, send_button)
+    admin_id = 5517129511
+    lat = geo_lat_data
+    long = geo_long_data
+    dsc = description_data
+    await bot.send_photo(chat_id=admin_id, photo=photo_data,
+                         caption=f"User ID: {user_id}\n\nПоложення снаряду за:\nДовготою: {lat} \nШиротою: {long} \n\nОпис: {dsc}",
                          reply_markup=keyboard_ban)
 
 
@@ -131,7 +204,7 @@ async def unban_user(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id, text="Користувач був розблокований. 🔓")
 
 
-@dp.message_handler(Text(equals="Перевірити інформацію ✅"), state="*")
+@dp.message_handler(Text(equals="Перевірити інформацію ✅"), state=States.ocup_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
@@ -168,13 +241,14 @@ async def back(message: types.Message):
         geo_lat_data = await db.lat_get(user_id=user_id)
         geo_long_data = await db.long_get(user_id=user_id)
         description_data = await db.description_get(user_id=user_id)
-        await send_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data)
+        await send_ocup_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data)
         await db.photo_delete(user_id=user_id)
         await db.lat_delete(user_id=user_id)
         await db.long_delete(user_id=user_id)
         await db.description_delete(user_id=user_id)
         await bot.send_message(message.chat.id, "Ми отримали ваші данні. Дякую за спіпрацю!",
                                reply_markup=btns.ocupant_menu)
+        await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Видалити 🗑"), state=States.send_state)
@@ -186,9 +260,34 @@ async def back(message: types.Message):
         await db.long_delete(user_id=user_id)
         await db.description_delete(user_id=user_id)
         await bot.send_message(message.chat.id, "Інформація була видалена.", reply_markup=btns.ocupant_menu)
+        await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state="*")
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.photo)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await message.delete()
+        await States.ocup_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.ocup_geo)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await message.delete()
+        await States.ocup_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.send_state)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await message.delete()
+        await States.ocup_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.ocup_send)
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
@@ -207,16 +306,17 @@ async def phone(message: types.Message):
                                reply_markup=keyboard_phone)
     else:
         await bot.send_message(message.chat.id, "Будьте обережні!", reply_markup=btns.ocupant_menu)
+        await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state="*")
+@dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state=States.ocup_send)
 async def back(message: types.Message):
     if message.text == "Прикріпити фотографію 📷":
         await States.photo.set()
         await bot.send_message(message.chat.id, "Надішліть фото окупантів:", reply_markup=btns.menu_ocup_back)
 
 
-@dp.message_handler(Text(equals="Прикріпити геолокацію 📍"), state="*")
+@dp.message_handler(Text(equals="Прикріпити геолокацію 📍"), state=States.ocup_send)
 async def back(message: types.Message):
     if message.text == "Прикріпити геолокацію 📍":
         await States.ocup_geo.set()
@@ -234,6 +334,7 @@ async def photo(message: types.Message):
 async def description(message: types.Message):
     await db.description_add(user_id=message.from_user.id, description=message.text)
     await bot.send_message(message.chat.id, "Ви прикріпили фото.", reply_markup=btns.ocupant_menu)
+    await States.ocup_send.set()
 
 
 @dp.message_handler(content_types="location", state=States.ocup_geo)
@@ -243,6 +344,7 @@ async def ocup_geo(message: types.Message):
     await db.lat_add(user_id=message.from_user.id, geo_lat=geoloclat)
     await db.long_add(user_id=message.from_user.id, geo_long=geoloclong)
     await bot.send_message(message.chat.id, "Ви прикріпили геолокацію.", reply_markup=btns.ocupant_menu)
+    await States.ocup_send.set()
 
 
 @dp.message_handler(content_types=['contact'], state="*")
@@ -433,6 +535,7 @@ async def phone(message: types.Message):
         button_backa = types.KeyboardButton(text="Назад ◀️")
         pplbad.add(button_napad, button_svidomist, button_backa)
         await bot.send_message(message.from_user.id, "Виберіть потрібний пункт:", reply_markup=pplbad)
+        await States.back_bad.set()
 
 
 @dp.message_handler(Text(equals="Без свідомості 🧠"), state="*")
@@ -567,6 +670,7 @@ async def phone(message: types.Message):
         button_backi = types.KeyboardButton(text="Назад ◀️")
         takg.add(button_ffg, button_ffh, button_backi)
         await bot.send_message(message.from_user.id, "Виберіть потрібний пункт:", reply_markup=takg)
+        await States.back_bad.set()
 
 
 @dp.message_handler(Text(equals="Сильна кровотеча 🩸"), state="*")
@@ -659,6 +763,170 @@ async def phone(message: types.Message):
                                'щоб швидку '
                                'було кому зустріти.',
                                reply_markup=takg)
+
+
+@dp.message_handler(Text(equals="Перевірити інформацію ✅"), state=States.bomb_send)
+async def back(message: types.Message):
+    keyboard_ban = types.InlineKeyboardMarkup()
+    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
+    keyboard_ban.add(ban_button)
+    user_id = message.from_user.id
+    if db.is_banned(user_id):
+        await bot.send_message(user_id, "Ви були заблоковані. Зверніться до адміністратора.", reply_markup=keyboard_ban)
+        return
+
+    photo_data = await db.photo_get(user_id=user_id)
+    geo_lat_data = await db.lat_get(user_id=user_id)
+    geo_long_data = await db.long_get(user_id=user_id)
+    description_data = await db.description_get(user_id=user_id)
+    if not photo_data or not geo_lat_data or not geo_long_data or not description_data:
+        await bot.send_message(user_id, "Будь ласка, надішліть фото та геолокацію, щоб продовжити.")
+        return
+
+    lat = geo_lat_data
+    long = geo_long_data
+    dsc = description_data
+
+    await bot.send_photo(chat_id=user_id, photo=photo_data,
+                         caption=f"Положення снаряду за:\n\nДовготою: {lat} \nШиротою: {long}\n\n Опис: {dsc}")
+    reply = "Якщо всі данні були вказано вірно, натисніть на конпку: Надіслати"
+    await message.answer(reply, reply_markup=btns.send)
+    await States.send_bomb_state.set()
+
+
+@dp.message_handler(Text(equals="Надіслати ✉️"), state=States.send_bomb_state)
+async def back(message: types.Message):
+    if message.text == "Надіслати ✉️":
+        user_id = message.from_user.id
+        photo_data = await db.photo_get(user_id=user_id)
+        geo_lat_data = await db.lat_get(user_id=user_id)
+        geo_long_data = await db.long_get(user_id=user_id)
+        description_data = await db.description_get(user_id=user_id)
+        await send_bomb_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data)
+        await db.photo_delete(user_id=user_id)
+        await db.lat_delete(user_id=user_id)
+        await db.long_delete(user_id=user_id)
+        await db.description_delete(user_id=user_id)
+        await bot.send_message(message.chat.id, "Ми отримали ваші данні. Дякую за спіпрацю!",
+                               reply_markup=btns.bomb_send_menu)
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Видалити 🗑"), state=States.send_bomb_state)
+async def back(message: types.Message):
+    if message.text == "Видалити 🗑":
+        user_id = message.from_user.id
+        await db.photo_delete(user_id=user_id)
+        await db.lat_delete(user_id=user_id)
+        await db.long_delete(user_id=user_id)
+        await db.description_delete(user_id=user_id)
+        await bot.send_message(message.chat.id, "Інформація була видалена.", reply_markup=btns.bomb_send_menu)
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.photo_bomb)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await message.delete()
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.bomb_geo)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await message.delete()
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.send_bomb_state)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await message.delete()
+        await States.bomb_send.set()
+
+
+@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.bomb_send)
+async def back(message: types.Message):
+    if message.text == "Вибрати інший спосіб ◀️":
+        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await message.delete()
+
+
+@dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state=States.bomb_send)
+async def back(message: types.Message):
+    if message.text == "Прикріпити фотографію 📷":
+        await States.photo_bomb.set()
+        await bot.send_message(message.chat.id, "Надішліть фото снаряду:", reply_markup=btns.menu_ocup_back)
+
+
+@dp.message_handler(Text(equals="Прикріпити геолокацію 📍"), state=States.bomb_send)
+async def back(message: types.Message):
+    if message.text == "Прикріпити геолокацію 📍":
+        await States.bomb_geo.set()
+        await bot.send_message(message.chat.id, "Надішліть геолокацію снаряду:", reply_markup=btns.ocupant_geo_sent)
+
+
+@dp.message_handler(content_types=ContentType.PHOTO, state=States.photo_bomb)
+async def photo(message: types.Message):
+    await db.photo_add(user_id=message.from_user.id, photo=message.photo[0].file_id)
+    await States.description_bomb.set()
+    await bot.send_message(message.chat.id, "Додайте опис для фото:")
+
+
+@dp.message_handler(state=States.description_bomb)
+async def description(message: types.Message):
+    await db.description_add(user_id=message.from_user.id, description=message.text)
+    await bot.send_message(message.chat.id, "Ви прикріпили фото.", reply_markup=btns.bomb_send_menu)
+    await States.bomb_send.set()
+
+
+@dp.message_handler(content_types="location", state=States.bomb_geo)
+async def ocup_geo(message: types.Message):
+    geoloclat = message.location.latitude
+    geoloclong = message.location.longitude
+    await db.lat_add(user_id=message.from_user.id, geo_lat=geoloclat)
+    await db.long_add(user_id=message.from_user.id, geo_long=geoloclong)
+    await bot.send_message(message.chat.id, "Ви прикріпили геолокацію.", reply_markup=btns.bomb_send_menu)
+    await States.bomb_send.set()
+
+
+@dp.message_handler(content_types=ContentType.PHOTO, state=States.bomb_photo)
+async def photo(message: types.Message):
+    photo_file = await message.photo[-1].download()
+    photo_file.seek(0)
+    image = preprocess(Image.open(photo_file.name)).unsqueeze(0)
+    text_data = tokenizer(["nothing found", "a weapon", "a bomb", "a land mine"])
+
+    with torch.no_grad(), torch.cuda.amp.autocast():
+        image_features = model.encode_image(image)
+        text_features = model.encode_text(text_data)
+        image_features /= image_features.norm(dim=-1, keepdim=True)
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+
+        text_probs = (100.0 * image_features @ text_features.T).softmax(dim=-1)
+
+    rounded_probs = torch.round(text_probs * 100) / 100
+
+    label_names = ["Нічого не знайдено", "Зброя", "Снаярд", "Міна"]
+    results = "Результати:\n\n"
+    for i, label_prob in enumerate(rounded_probs[0]):
+        label_prob_percent = int(label_prob * 100)
+        label_name = label_names[i]
+        if label_prob_percent > 50:
+            results += "🟢 "
+        elif label_prob_percent > 10:
+            results += "🟠 "
+        else:
+            results += "🔴 "
+
+        results += f"{label_name}: {label_prob_percent}%\n"
+    await message.reply(results)
+
+    photo_file.close()
+    os.remove(photo_file.name)
 
 
 if __name__ == '__main__':

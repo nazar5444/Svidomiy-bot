@@ -1,15 +1,22 @@
 from aiogram import types
 
 keyboard_plt = types.ReplyKeyboardMarkup(resize_keyboard=True)
-button = types.KeyboardButton("Укриття 💣", request_location=True)
-button1 = types.KeyboardButton("Окупант ⚔")
+button = types.KeyboardButton("Укриття 🏰", request_location=True)
+button1 = types.KeyboardButton("Незламність ⚡️")
 button2 = types.KeyboardButton("Тривога 🔈")
-button3 = types.KeyboardButton("Пункт незламності ⚡️")
-button4 = types.KeyboardButton("Перша допомога 🏥")
-button5 = types.KeyboardButton("Тех.підтримка 🛠")
+button3 = types.KeyboardButton("Окупант ⚔")
+button4 = types.KeyboardButton("Снаряд 💣")
+button5 = types.KeyboardButton("Перша допомога 🏥")
 keyboard_plt.add(button, button1, button2)
-keyboard_plt.add(button3)
-keyboard_plt.add(button4, button5)
+keyboard_plt.add(button3, button4)
+keyboard_plt.add(button5)
+
+bomb_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+button_ocupant_photo = types.KeyboardButton("Перевірити ✅")
+button_ocupant_geo = types.KeyboardButton("Повідомити ✉")
+button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
+bomb_menu.add(button_ocupant_photo, button_ocupant_geo)
+bomb_menu.add(button_menu)
 
 keyboard_back = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
 button_back = types.KeyboardButton(text="Назад ◀️")
@@ -34,6 +41,14 @@ button_ocupant_geo = types.KeyboardButton("Прикріпити геолокац
 button_check = types.KeyboardButton("Перевірити інформацію ✅")
 button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
 ocupant_menu.add(button_ocupant_photo, button_ocupant_geo, button_check, button_menu)
+
+bomb_send_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
+button_ocupant_photo = types.KeyboardButton("Прикріпити фотографію 📷")
+button_ocupant_geo = types.KeyboardButton("Прикріпити геолокацію 📍")
+button_check = types.KeyboardButton("Перевірити інформацію ✅")
+button_menu = types.KeyboardButton("Назад ◀️")
+bomb_send_menu.add(button_ocupant_photo, button_ocupant_geo, button_check, button_menu)
+
 
 ocupant_geo_sent = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 button_ocupant_geo_send = types.KeyboardButton("Надіслати геолокацію 📍", request_location=True)

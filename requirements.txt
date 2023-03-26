@@ -1,4 +1,7 @@
 aiogram==2.22.2
 aiohttp_sse_client==0.2.1
+open_clip_torch==2.16.0
+Pillow==9.4.0
 psycopg2==2.9.5
 requests==2.28.1
+torch==1.13.1
