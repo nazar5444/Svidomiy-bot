@@ -10,7 +10,7 @@ async def db_start():
         database="users",
         user="svidomyi",
         password="lfjfFFids565",
-        host="161.35.92.164",
+        host="164.90.202.46",
         port="5432"
     )
     cur = conn.cursor()
