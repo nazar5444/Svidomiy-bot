@@ -11,7 +11,6 @@ import btns
 import db
 import text
 from db import db_start
-from webapp import main
 
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
 
@@ -22,7 +21,6 @@ dp = Dispatcher(bot=bot, storage=storage)
 
 async def on_startup(_):
     await db_start()
-    await main()
 
 
 class States(StatesGroup):
@@ -316,13 +314,13 @@ async def smstrivoga(message: types.Message):
 @dp.callback_query_handler(text="alert_on", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
     await db.alert_on(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу включено. 🔔")
+    await bot.answer_callback_query(callback.id, text="У РОЗРОБЦІ! 👷")
 
 
 @dp.callback_query_handler(text="alert_off", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
     await db.alert_off(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу виключено. 🔕")
+    await bot.answer_callback_query(callback.id, text="У РОЗРОБЦІ! 👷")
 
 
 @dp.callback_query_handler(text="nextb", state="*")
