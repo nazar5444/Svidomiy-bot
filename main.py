@@ -898,11 +898,11 @@ async def photo(message: types.Message):
     photo_file = await message.photo[-1].download()
     photo_file.seek(0)
     image = preprocess(Image.open(photo_file.name)).unsqueeze(0)
-    text_data = tokenizer(["nothing found", "a weapon", "a bomb", "a land mine"])
+    text = tokenizer(["nothing found", "a weapon", "a military rocket", "a land mine"])
 
     with torch.no_grad(), torch.cuda.amp.autocast():
         image_features = model.encode_image(image)
-        text_features = model.encode_text(text_data)
+        text_features = model.encode_text(text)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         text_features /= text_features.norm(dim=-1, keepdim=True)
 
@@ -910,12 +910,14 @@ async def photo(message: types.Message):
 
     rounded_probs = torch.round(text_probs * 100) / 100
 
-    label_names = ["Нічого не знайдено", "Зброя", "Снаярд", "Міна"]
+    label_names = ["Нічого не знайдено", "Зброя", "Снаряд", "Міна"]
     results = "Результати:\n\n"
+
+    max_prob = max(rounded_probs[0])
     for i, label_prob in enumerate(rounded_probs[0]):
         label_prob_percent = int(label_prob * 100)
         label_name = label_names[i]
-        if label_prob_percent > 50:
+        if label_prob == max_prob:
             results += "🟢 "
         elif label_prob_percent > 10:
             results += "🟠 "
