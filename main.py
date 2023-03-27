@@ -77,19 +77,11 @@ async def back(message: types.Message):
                                reply_markup=btns.bomb_menu)
 
 
-@dp.message_handler(Text(equals="Перевірити ✅"), state="*")
+@dp.message_handler(Text(equals="Перевірити 🔍"), state="*")
 async def back(message: types.Message):
-    if message.text == "Перевірити ✅":
+    if message.text == "Перевірити 🔍":
         await bot.send_message(message.chat.id, "Надішліть фото снаряду.")
         await States.bomb_photo.set()
-
-
-@dp.message_handler(Text(equals="Перевірити ✅"), state="*")
-async def back(message: types.Message):
-    if message.text == "Перевірити ✅":
-        await bot.send_message(message.chat.id, "Надішліть фото снаряду.", reply_markup=btns.keyboard_back)
-        await States.bomb_photo.set()
-        await States.back_bomb.set()
 
 
 @dp.message_handler(Text(equals="Тривога 🔈"), state="*")

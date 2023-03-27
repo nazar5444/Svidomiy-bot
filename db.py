@@ -8,7 +8,7 @@ async def db_start():
 
     conn = psycopg2.connect(
         database="users",
-        user="svidomyi",
+        user="svidomiy",
         password="lfjfFFids565",
         host="159.223.12.134",
         port="5432"

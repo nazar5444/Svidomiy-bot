@@ -12,7 +12,7 @@ keyboard_plt.add(button3, button4)
 keyboard_plt.add(button5)
 
 bomb_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-button_ocupant_photo = types.KeyboardButton("Перевірити ✅")
+button_ocupant_photo = types.KeyboardButton("Перевірити 🔍")
 button_ocupant_geo = types.KeyboardButton("Повідомити ✉")
 button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
 bomb_menu.add(button_ocupant_photo, button_ocupant_geo)
