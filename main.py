@@ -1,14 +1,17 @@
+import asyncio
+import os
+
+import aiohttp
 import requests
-from aiogram import Bot, Dispatcher, executor, types
+import torch
+from PIL import Image
+from aiogram import Bot, Dispatcher, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
-
-import torch
-import os
-from PIL import Image
+from aiogram.utils import executor
 
 import alert
 import btns
@@ -29,6 +32,8 @@ async def on_startup(_):
 
 
 class States(StatesGroup):
+    ocup_verif = State()
+    bomb_verif = State()
     description_bomb = State()
     photo_bomb = State()
     send_bomb_state = State()
@@ -48,23 +53,62 @@ class States(StatesGroup):
     bomb_photo = State()
 
 
+async def main():
+    async with aiohttp.ClientSession() as session:
+        await db_start()
+        asyncio.create_task(dp.start_polling())
+        await session.close()
+
+
 @dp.message_handler(Text(equals="Незламність ⚡️"), state="*")
 async def phone(message: types.Message):
     if message.text == "Незламність ⚡️":
+        next_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nezlb2")
+        citichoose2 = InlineKeyboardMarkup(row_width=2).add(next_btn)
         nezlam = await db.city_get(user_id=message.from_user.id)
-        await bot.send_message(message.from_user.id, text.city_text.get(nezlam))
+        await bot.send_message(message.from_user.id, text.page_1.get(nezlam), reply_markup=citichoose2)
+
+
+@dp.callback_query_handler(text="nezlp1", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    next_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nezlb2")
+    citichoose2 = InlineKeyboardMarkup(row_width=2).add(next_btn)
+    nezlam = await db.city_get(user_id=callback.from_user.id)
+    await bot.edit_message_text(chat_id=callback.from_user.id, message_id=callback.message.message_id,
+                                text=text.page_1.get(nezlam), reply_markup=citichoose2)
+
+
+@dp.callback_query_handler(text="nezlb2", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    prev1_btn = InlineKeyboardButton(text="⬅ Назад", callback_data="nezlp1")
+    next_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nezlb3")
+    citichoose2 = InlineKeyboardMarkup(row_width=2).add(prev1_btn, next_btn)
+    nezlam = await db.city_get(user_id=callback.from_user.id)
+    await bot.edit_message_text(chat_id=callback.from_user.id, message_id=callback.message.message_id,
+                                text=text.page_2.get(nezlam), reply_markup=citichoose2)
+
+
+@dp.callback_query_handler(text="nezlb3", state="*")
+async def nextprs_btn(callback: types.CallbackQuery):
+    prev1_btn = InlineKeyboardButton(text="⬅ Назад", callback_data="nezlb2")
+    citichoose2 = InlineKeyboardMarkup(row_width=2).add(prev1_btn)
+    nezlam = await db.city_get(user_id=callback.from_user.id)
+    await bot.edit_message_text(chat_id=callback.from_user.id, message_id=callback.message.message_id,
+                                text=text.page_3.get(nezlam), reply_markup=citichoose2)
 
 
 @dp.message_handler(Text(equals="Повідомити ✉"), state="*")
 async def phone(message: types.Message):
     if message.text == "Повідомити ✉" and await db.verif_profile(user_id=message.from_user.id) == "False":
         keyboard_phone = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        button_phone = types.KeyboardButton(text="Повідомити ✉", request_contact=True)
-        keyboard_phone.add(button_phone, btns.button_menu)
+        button_phone = types.KeyboardButton(text="Надіслати телефон 📞", request_contact=True)
+        button_back = types.KeyboardButton(text="Назад ◀️")
+        keyboard_phone.add(button_phone, button_back)
         await bot.send_message(message.from_user.id,
                                'Щоб отримати доступ до цього меню ви повинні підтвердити свою особистість за допомогою '
                                'номера телефона. Натисніть на кнопку "Надіслати телефон".',
                                reply_markup=keyboard_phone)
+        await States.bomb_verif.set()
     else:
         await bot.send_message(message.chat.id, "Будьте обережні!", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
@@ -80,7 +124,7 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Перевірити 🔍"), state="*")
 async def back(message: types.Message):
     if message.text == "Перевірити 🔍":
-        await bot.send_message(message.chat.id, "Надішліть фото снаряду.")
+        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання.", reply_markup=btns.keyboard_back)
         await States.bomb_photo.set()
 
 
@@ -120,6 +164,24 @@ async def back(message: types.Message):
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_send)
+async def back(message: types.Message):
+    if message.text == "Назад ◀️":
+        await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.bomb_menu)
+
+
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_verif)
+async def back(message: types.Message):
+    if message.text == "Назад ◀️":
+        await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.bomb_menu)
+
+
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_verif)
+async def back(message: types.Message):
+    if message.text == "Назад ◀️":
+        await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.keyboard_plt)
+
+
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_photo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Ви повенулися назад.", reply_markup=btns.bomb_menu)
@@ -296,6 +358,7 @@ async def phone(message: types.Message):
                                'Щоб отримати доступ до цього меню ви повинні підтвердити свою особистість за допомогою '
                                'номера телефона. Натисніть на кнопку "Надіслати телефон".',
                                reply_markup=keyboard_phone)
+        await States.ocup_verif.set()
     else:
         await bot.send_message(message.chat.id, "Будьте обережні!", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
@@ -339,14 +402,32 @@ async def ocup_geo(message: types.Message):
     await States.ocup_send.set()
 
 
-@dp.message_handler(content_types=['contact'], state="*")
+@dp.message_handler(content_types=['contact'], state=States.bomb_verif)
 async def contact(message: types.Message, state: FSMContext, number=None) -> None:
     async with state.proxy() as data:
         data[number] = message.contact.phone_number
-    keyboard_cnt = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    keyboard_cnt.add(btns.button_menu)
     if message.forward_from is not None:
-        await bot.send_message(message.chat.id, "Некоректний номер телефону.", reply_markup=keyboard_cnt)
+        await bot.send_message(message.chat.id, "Некоректний номер телефону.")
+    else:
+        num = message.contact.phone_number
+        await db.edit_profile(user_id=message.from_user.id, phone_number=num)
+        if num.startswith(str("+380")) or num.startswith(str("380")):
+            await bot.send_message(message.chat.id, "Ваш номер: {}.\n\nДякую за підтвредженя своєї особи! "
+                                                    "Будьте обережні та робіть фото тільки в тому разі якщо нічого не "
+                                                    "загрожує вашому життю!".format(num),
+                                   reply_markup=btns.bomb_send_menu)
+            await db.change_profile(user_id=message.from_user.id)
+            await States.bomb_send.set()
+        else:
+            await bot.send_message(message.chat.id, "Некоректний номер телефону.")
+
+
+@dp.message_handler(content_types=['contact'], state=States.ocup_verif)
+async def contact(message: types.Message, state: FSMContext, number=None) -> None:
+    async with state.proxy() as data:
+        data[number] = message.contact.phone_number
+    if message.forward_from is not None:
+        await bot.send_message(message.chat.id, "Некоректний номер телефону.")
     else:
         num = message.contact.phone_number
         await db.edit_profile(user_id=message.from_user.id, phone_number=num)
@@ -356,8 +437,9 @@ async def contact(message: types.Message, state: FSMContext, number=None) -> Non
                                                     "загрожує вашому життю!".format(num),
                                    reply_markup=btns.ocupant_menu)
             await db.change_profile(user_id=message.from_user.id)
+            await States.ocup_send.set()
         else:
-            await bot.send_message(message.chat.id, "Некоректний номер телефону.", reply_markup=keyboard_cnt)
+            await bot.send_message(message.chat.id, "Некоректний номер телефону.")
 
 
 @dp.message_handler(content_types=['location'], state=States.geo_bomb)
@@ -890,11 +972,11 @@ async def photo(message: types.Message):
     photo_file = await message.photo[-1].download()
     photo_file.seek(0)
     image = preprocess(Image.open(photo_file.name)).unsqueeze(0)
-    text = tokenizer(["nothing found", "a weapon", "a military rocket", "a land mine"])
+    labels = tokenizer(["nothing found", "a grenade", "a weapon", "a military rocket", "a land mine"])
 
     with torch.no_grad(), torch.cuda.amp.autocast():
         image_features = model.encode_image(image)
-        text_features = model.encode_text(text)
+        text_features = model.encode_text(labels)
         image_features /= image_features.norm(dim=-1, keepdim=True)
         text_features /= text_features.norm(dim=-1, keepdim=True)
 
@@ -902,7 +984,7 @@ async def photo(message: types.Message):
 
     rounded_probs = torch.round(text_probs * 100) / 100
 
-    label_names = ["Нічого не знайдено", "Зброя", "Снаряд", "Міна"]
+    label_names = ["Нічого не знайдено", "Граната", "Зброя", "Снаряд", "Міна"]
     results = "Результати:\n\n"
 
     max_prob = max(rounded_probs[0])

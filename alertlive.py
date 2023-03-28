@@ -1,10 +1,11 @@
 import json
+
 from aiohttp_sse_client import client as sse_client
 
 import db
 
 
-async def main():
+async def alertlive_func():
     headers = {"X-API-Key": "5ebcb2ed4d4fd3d565a3d4ae028c0242c5e583d8"}
     async with sse_client.EventSource(
             'https://alerts.com.ua/api/states/live',
@@ -13,6 +14,8 @@ async def main():
         try:
             async for event in event_source:
                 if event.type == "hello":
+                    print(event.data)
+                if event.type == "ping":
                     print(event.data)
                 if event.type == "update":
                     data = json.loads(event.data)

@@ -125,8 +125,6 @@ if "false" in crg_id.text:
 else:
     print("Повітряна тривога в Черніговській обл.")
 
-TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
-
 maps_list = {
     "1": "https://www.google.com/maps/d/u/0/viewer?mid=1ODeqZzyrD--SR_Kk2QikzzbaplYFIKsq&hl=en_US&ll={latt}%2C{long}&z=17",
     "2": "https://www.google.com/maps/d/u/0/embed?mid=1Umceq4F24ME3kVcHRLhfZ_8IqJAge8Y&ehbc=2E312F&ll={latt}%2C{long}&z=17",
