@@ -124,7 +124,7 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Перевірити 🔍"), state="*")
 async def back(message: types.Message):
     if message.text == "Перевірити 🔍":
-        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання.", reply_markup=btns.keyboard_back)
+        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання. Результати можуть бути не точними!", reply_markup=btns.keyboard_back)
         await States.bomb_photo.set()
 
 
@@ -972,7 +972,7 @@ async def photo(message: types.Message):
     photo_file = await message.photo[-1].download()
     photo_file.seek(0)
     image = preprocess(Image.open(photo_file.name)).unsqueeze(0)
-    labels = tokenizer(["nothing found", "a grenade", "a weapon", "a military rocket", "a land mine"])
+    labels = tokenizer(["nothing found", "a grenade", "a military rocket", "a land mine"])
 
     with torch.no_grad(), torch.cuda.amp.autocast():
         image_features = model.encode_image(image)
@@ -984,8 +984,8 @@ async def photo(message: types.Message):
 
     rounded_probs = torch.round(text_probs * 100) / 100
 
-    label_names = ["Нічого не знайдено", "Граната", "Зброя", "Снаряд", "Міна"]
-    results = "Результати:\n\n"
+    label_names = ["Нічого не знайдено", "Граната", "Снаряд", "Міна"]
+    results = "Результати 🔍 \n\n"
 
     max_prob = max(rounded_probs[0])
     for i, label_prob in enumerate(rounded_probs[0]):
