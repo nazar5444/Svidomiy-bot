@@ -147,17 +147,19 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Стан тривоги ⏰"), state="*")
 async def back(message: types.Message):
     keyboard_map = types.InlineKeyboardMarkup()
-    ban_button = types.InlineKeyboardButton(text="Мапа тривог", url="https://alerts.in.ua/")
+    band_button = types.InlineKeyboardButton(text="Напрямок ракет 🚀", url="https://de-raketa.info/")
+    ban_button = types.InlineKeyboardButton(text="Мапа тривог 🗺", url="https://alerts.in.ua/")
+    keyboard_map.add(band_button)
     keyboard_map.add(ban_button)
     city_req_id = requests.get(alert.link.format(city_id=await db.city_get(user_id=message.from_user.id)),
                                headers=alert.headers)
     if "false" in city_req_id.text:
         await bot.send_message(message.from_user.id,
-                               "Повітряна тривога у вашому місті відсутня. Для більш точної інформації натисніть на кнопку нижче:",
+                               "Повітряна тривога у вашому місті відсутня. Для більш точної інформації натисніть на одну з кнопок нижче:",
                                reply_markup=keyboard_map)
     else:
         await bot.send_message(message.from_user.id, "В вашому місті повітряна тривога! Негайно перейдіть до "
-                                                     "найближчого укриття. Для більш точної інформації натисніть на кнопку нижче:",
+                                                     "найближчого укриття. Для більш точної інформації натисніть на одну з кнопок нижче:",
                                reply_markup=keyboard_map)
 
 

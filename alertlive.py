@@ -1,6 +1,19 @@
 import json
+
+from aiogram import Bot, Dispatcher
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiohttp_sse_client import client as sse_client
 import db
+
+TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
+
+bot = Bot(token=TOKEN, parse_mode="html")
+storage = MemoryStorage()
+dp = Dispatcher(bot=bot, storage=storage)
+
+
+async def send_notification(user_id, message):
+    await bot.send_message(chat_id=user_id, text=message)
 
 
 async def alertlive_func():
@@ -23,8 +36,10 @@ async def alertlive_func():
                     if id_list_changes:
                         for user_id in id_list_changes:
                             if state["alert"] is False:
-                                print(user_id[0], 'Відбій повітряної тривоги')
+                                print(user_id[0], 'Відбій повітряної тривоги 🔕')
+                                await send_notification(user_id[0], 'Відбій повітряної тривоги')
                             elif state["alert"] is True:
                                 print(user_id[0], 'Повітряна тривога')
+                                await send_notification(user_id[0], 'Повітряна тривога 🔔')
         except ConnectionError:
             pass
