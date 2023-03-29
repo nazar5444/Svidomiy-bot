@@ -1,7 +1,6 @@
 import asyncio
 import os
 
-import aiohttp
 import requests
 import torch
 from PIL import Image
@@ -11,9 +10,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ContentType
-from aiogram.utils import executor
 
 import alert
+import alertlive
 import btns
 import db
 import text
@@ -54,10 +53,14 @@ class States(StatesGroup):
 
 
 async def main():
-    async with aiohttp.ClientSession() as session:
+    try:
+        asyncio.create_task(alertlive.alertlive_func())
         await db_start()
-        asyncio.create_task(dp.start_polling())
-        await session.close()
+        await bot.delete_webhook(drop_pending_updates=True)
+        await dp.start_polling()
+        await alertlive.alertlive_func()
+    finally:
+        await bot.session.close()
 
 
 @dp.message_handler(Text(equals="Незламність ⚡️"), state="*")
@@ -124,7 +127,8 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Перевірити 🔍"), state="*")
 async def back(message: types.Message):
     if message.text == "Перевірити 🔍":
-        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання. Результати можуть бути не точними!", reply_markup=btns.keyboard_back)
+        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання. Результати можуть бути не точними!",
+                               reply_markup=btns.keyboard_back)
         await States.bomb_photo.set()
 
 
@@ -1005,5 +1009,4 @@ async def photo(message: types.Message):
     os.remove(photo_file.name)
 
 
-if __name__ == '__main__':
-    executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+asyncio.run(main())
