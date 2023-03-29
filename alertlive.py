@@ -15,8 +15,6 @@ async def alertlive_func():
             async for event in event_source:
                 if event.type == "hello":
                     print(event.data)
-                if event.type == "ping":
-                    print(event.data)
                 if event.type == "update":
                     data = json.loads(event.data)
                     state = data["state"]
