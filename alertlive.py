@@ -29,17 +29,15 @@ async def alertlive_func():
                 if event.type == "update":
                     data = json.loads(event.data)
                     state = data["state"]
-                    print("State ID:", state["id"])
-                    print("Alert:", state["alert"])
                     res = db.cur.execute("SELECT user_id FROM users WHERE city_id::text = %s", (str(state["id"]),))
                     id_list_changes = db.cur.fetchall()
                     if id_list_changes:
                         for user_id in id_list_changes:
                             if state["alert"] is False:
-                                print(user_id[0], 'Відбій повітряної тривоги 🔕')
-                                await send_notification(user_id[0], 'Відбій повітряної тривоги')
+                                if db.is_alert_on(user_id):
+                                    await send_notification(user_id[0], 'Відбій повітряної тривоги 🔇')
                             elif state["alert"] is True:
-                                print(user_id[0], 'Повітряна тривога')
-                                await send_notification(user_id[0], 'Повітряна тривога 🔔')
+                                if db.is_alert_on(user_id):
+                                    await send_notification(user_id[0], 'Повітряна тривога 🔈')
         except ConnectionError:
             pass

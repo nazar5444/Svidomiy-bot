@@ -1,5 +1,6 @@
 import asyncio
 import os
+import warnings
 
 import requests
 import torch
@@ -137,7 +138,7 @@ async def back(message: types.Message):
     if message.text == "Тривога 🔈":
         keyboard_aid = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
         button_injury = types.KeyboardButton(text="Стан тривоги ⏰")
-        button_bad = types.KeyboardButton(text="Повідомлення 💬")
+        button_bad = types.KeyboardButton(text="Сповіщення 💬")
         button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
         keyboard_aid.add(button_bad, button_injury, button_menu)
         await bot.send_message(message.from_user.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
@@ -327,7 +328,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
-        await message.delete()
         await States.ocup_send.set()
 
 
@@ -335,7 +335,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
-        await message.delete()
         await States.ocup_send.set()
 
 
@@ -343,7 +342,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
-        await message.delete()
         await States.ocup_send.set()
 
 
@@ -351,7 +349,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
-        await message.delete()
 
 
 @dp.message_handler(Text(equals="Окупант ⚔"), state="*")
@@ -482,7 +479,24 @@ async def handle(message: types.Message) -> None:
         await message.delete()
 
 
-@dp.message_handler(Text(equals="Повідомлення 💬"), state="*")
+@dp.message_handler(commands=['change'], state="*")
+async def handle(message: types.Message) -> None:
+    city = InlineKeyboardButton(text="Одеська обл.", callback_data="14")
+    city1 = InlineKeyboardButton(text="Дніпропетровська обл.", callback_data="3")
+    city2 = InlineKeyboardButton(text="Чернігівська обл.", callback_data="23")
+    city3 = InlineKeyboardButton(text="Харківська обл.", callback_data="19")
+    city4 = InlineKeyboardButton(text="Житомирська обл.", callback_data="5")
+    city5 = InlineKeyboardButton(text="Полтавська обл.", callback_data="15")
+    city6 = InlineKeyboardButton(text="Херсонська обл.", callback_data="20")
+    city7 = InlineKeyboardButton(text="Київська обл.", callback_data="9")
+    next_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nextb")
+    citichoose = InlineKeyboardMarkup(row_width=2).add(city, city1, city2, city3, city4, city5, city6, city7, next_btn)
+    await bot.send_message(message.from_user.id, "Оберіть вашу область зі списку нижче: ", reply_markup=citichoose)
+    await db.profile(user_id=message.from_user.id, verified="False")
+    await message.delete()
+
+
+@dp.message_handler(Text(equals="Сповіщення 💬"), state="*")
 async def smstrivoga(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
     on_button = types.InlineKeyboardButton(text="Вкл. 🔔", callback_data="alert_on")
@@ -496,13 +510,13 @@ async def smstrivoga(message: types.Message):
 @dp.callback_query_handler(text="alert_on", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
     await db.alert_on(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="У РОЗРОБЦІ! 👷")
+    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу включені. 🔈")
 
 
 @dp.callback_query_handler(text="alert_off", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
     await db.alert_off(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="У РОЗРОБЦІ! 👷")
+    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу виключені. 🔇")
 
 
 @dp.callback_query_handler(text="nextb", state="*")
@@ -908,7 +922,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
-        await message.delete()
         await States.bomb_send.set()
 
 
@@ -916,7 +929,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
-        await message.delete()
         await States.bomb_send.set()
 
 
@@ -924,7 +936,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
-        await message.delete()
         await States.bomb_send.set()
 
 
@@ -932,7 +943,6 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Вибрати інший спосіб ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
-        await message.delete()
 
 
 @dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state=States.bomb_send)
@@ -975,6 +985,7 @@ async def ocup_geo(message: types.Message):
 
 @dp.message_handler(content_types=ContentType.PHOTO, state=States.bomb_photo)
 async def photo(message: types.Message):
+    warnings.filterwarnings(action='ignore', category=UserWarning)
     photo_file = await message.photo[-1].download()
     photo_file.seek(0)
     image = preprocess(Image.open(photo_file.name)).unsqueeze(0)
