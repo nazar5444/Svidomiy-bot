@@ -35,9 +35,9 @@ async def alertlive_func():
                         for user_id in id_list_changes:
                             if state["alert"] is False:
                                 if db.is_alert_on(user_id):
-                                    await send_notification(user_id[0], 'Відбій повітряної тривоги 🔇')
+                                    await send_notification(user_id[0], 'Відбій повітряної тривоги. 🔕')
                             elif state["alert"] is True:
                                 if db.is_alert_on(user_id):
-                                    await send_notification(user_id[0], 'Повітряна тривога 🔈')
+                                    await send_notification(user_id[0], 'Увага! Повітряна тривога у вашому місці. 🔔')
         except ConnectionError:
             pass
