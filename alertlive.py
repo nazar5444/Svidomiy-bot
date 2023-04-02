@@ -1,5 +1,6 @@
 import json
 
+from aiogram import types
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiohttp_sse_client import client as sse_client
@@ -15,7 +16,10 @@ dp = Dispatcher(bot=bot, storage=storage)
 
 
 async def send_notification(user_id, message):
-    await bot.send_message(chat_id=user_id, text=message)
+    keyboard_map = types.InlineKeyboardMarkup()
+    band_button = types.InlineKeyboardButton(text="Напрямок ракет 🚀", url="https://de-raketa.info/")
+    keyboard_map.add(band_button)
+    await bot.send_message(chat_id=user_id, text=message, reply_markup=keyboard_map)
 
 
 async def alertlive_func():
@@ -34,7 +38,6 @@ async def alertlive_func():
                     res = db.cur.execute("SELECT user_id FROM users WHERE city_id::text = %s", (str(state["id"]),))
                     id_list_changes = db.cur.fetchall()
                     city_url = alert.city_list_alert.get(str(state["id"]))
-                    print(city_url)
                     if id_list_changes:
                         for user_id in id_list_changes:
                             if state["alert"] is False:

@@ -499,24 +499,62 @@ async def handle(message: types.Message) -> None:
 @dp.message_handler(Text(equals="Сповіщення 💬"), state="*")
 async def smstrivoga(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
-    on_button = types.InlineKeyboardButton(text="Вкл. 🔔", callback_data="alert_on")
-    off_button = types.InlineKeyboardButton(text="Викл. 🔕", callback_data="alert_off")
+    on_button = types.InlineKeyboardButton(text="Вкл. 🔈", callback_data="alert_on")
+    off_button = types.InlineKeyboardButton(text="Викл. 🔇", callback_data="alert_off")
     keyboard_ban.add(on_button, off_button)
-    await bot.send_message(message.from_user.id,
-                           "За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті.",
-                           reply_markup=keyboard_ban)
+
+    user_id = message.from_user.id
+    alert_enabled = db.is_alert_on(user_id)
+
+    if alert_enabled:
+        alert_status = "🔈"
+    else:
+        alert_status = "🔇"
+
+    message_text = f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: {alert_status}"
+    await bot.send_message(user_id, message_text, reply_markup=keyboard_ban)
 
 
 @dp.callback_query_handler(text="alert_on", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
-    await db.alert_on(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу включені. 🔈")
+    user_id = callback.from_user.id
+    alert_enabled = db.is_alert_on(user_id)
+
+    if alert_enabled:
+        message_text = "Сповіщення про тривогу вже включені."
+        await bot.answer_callback_query(callback.id, text=message_text)
+        return
+
+    await db.alert_on(user_id=user_id)
+    message_text = "Сповіщення про тривогу включені. 🔈"
+    await bot.answer_callback_query(callback.id, text=message_text)
+    await bot.edit_message_text(chat_id=user_id, message_id=callback.message.message_id,
+                                text=f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔈",
+                                reply_markup=types.InlineKeyboardMarkup().add(
+                                    types.InlineKeyboardButton(text="Вкл. 🔈", callback_data="alert_on"),
+                                    types.InlineKeyboardButton(text="Викл. 🔇", callback_data="alert_off")
+                                ))
 
 
 @dp.callback_query_handler(text="alert_off", state="*")
 async def nextprs_btn(callback: types.CallbackQuery):
-    await db.alert_off(user_id=callback.from_user.id)
-    await bot.answer_callback_query(callback.id, text="Сповіщення про тривогу виключені. 🔇")
+    user_id = callback.from_user.id
+    alert_enabled = db.is_alert_on(user_id)
+
+    if not alert_enabled:
+        message_text = "Сповіщення про тривогу вже виключені."
+        await bot.answer_callback_query(callback.id, text=message_text)
+        return
+
+    await db.alert_off(user_id=user_id)
+    message_text = "Сповіщення про тривогу виключені. 🔇"
+    await bot.answer_callback_query(callback.id, text=message_text)
+    await bot.edit_message_text(chat_id=user_id, message_id=callback.message.message_id,
+                                text=f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔇",
+                                reply_markup=types.InlineKeyboardMarkup().add(
+                                    types.InlineKeyboardButton(text="Вкл. 🔈", callback_data="alert_on"),
+                                    types.InlineKeyboardButton(text="Викл. 🔇", callback_data="alert_off")
+                                ))
 
 
 @dp.callback_query_handler(text="nextb", state="*")
