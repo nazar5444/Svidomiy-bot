@@ -33,14 +33,17 @@ async def alertlive_func():
                     state = data["state"]
                     res = db.cur.execute("SELECT user_id FROM users WHERE city_id::text = %s", (str(state["id"]),))
                     id_list_changes = db.cur.fetchall()
+                    city_url = alert.city_list_alert.get(str(state["id"]))
+                    print(city_url)
                     if id_list_changes:
                         for user_id in id_list_changes:
                             if state["alert"] is False:
                                 if db.is_alert_on(user_id):
-                                    await send_notification(user_id[0], 'Відбій повітряної тривоги. 🔕')
+                                    await send_notification(user_id[0],
+                                                            'Відбій повітряної тривоги у {} оласті. 🔕'.format(
+                                                                city_url))
                             elif state["alert"] is True:
                                 if db.is_alert_on(user_id):
-                                    city_url = alert.city_list_alert.get(state["id"])
                                     await send_notification(user_id[0],
                                                             'Увага! Повітряна тривога у {} області. Негайно перейдіть до найближчого укриття! 🔔'.format(
                                                                 city_url))
