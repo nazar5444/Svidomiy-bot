@@ -453,7 +453,7 @@ async def handle_location(message: types.Message):
                                   url=maps_url.format(
                                       latt=message.location.latitude, long=message.location.longitude))
     geo = InlineKeyboardMarkup().add(geobtn)
-    reply = "Ви можете знайти найближче за посиланням яке знаходиться нижче."
+    reply = "Ви можете знайти найближче укриття за посиланням яке знаходиться нижче."
     await message.answer(reply, reply_markup=geo)
 
 

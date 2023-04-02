@@ -3,6 +3,8 @@ import json
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiohttp_sse_client import client as sse_client
+
+import alert
 import db
 
 TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
@@ -38,6 +40,9 @@ async def alertlive_func():
                                     await send_notification(user_id[0], 'Відбій повітряної тривоги. 🔕')
                             elif state["alert"] is True:
                                 if db.is_alert_on(user_id):
-                                    await send_notification(user_id[0], 'Увага! Повітряна тривога у вашому місці. 🔔')
+                                    city_url = alert.city_list_alert.get(state["id"])
+                                    await send_notification(user_id[0],
+                                                            'Увага! Повітряна тривога у {} області. Негайно перейдіть до найближчого укриття! 🔔'.format(
+                                                                city_url))
         except ConnectionError:
             pass
