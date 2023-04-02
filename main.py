@@ -156,11 +156,11 @@ async def back(message: types.Message):
                                headers=alert.headers)
     if "false" in city_req_id.text:
         await bot.send_message(message.from_user.id,
-                               "Повітряна тривога у вашому місті відсутня. Для більш точної інформації натисніть на одну з кнопок нижче:",
+                               f"Повітряна тривога у {alert.city_list_alert[await db.city_get(user_id=message.from_user.id)]} області відсутня. Для більш точної інформації натисніть на одну з кнопок нижче:",
                                reply_markup=keyboard_map)
     else:
-        await bot.send_message(message.from_user.id, "В вашому місті повітряна тривога! Негайно перейдіть до "
-                                                     "найближчого укриття. Для більш точної інформації натисніть на одну з кнопок нижче:",
+        await bot.send_message(message.from_user.id,
+                               f"В {alert.city_list_alert[await db.city_get(user_id=message.from_user.id)]} області повітряна тривога! Негайно перейдіть до найближчого укриття. Для більш точної інформації натисніть на одну з кнопок нижче:",
                                reply_markup=keyboard_map)
 
 
@@ -626,8 +626,9 @@ async def prewprs_btn(callback: types.CallbackQuery):
 @dp.callback_query_handler(state="*")
 async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
     city_url = alert.city_list.get(callback.data)
-    await States.city_list.set()
+    city_url_alert = alert.city_list_alert.get(callback.data)
     await state.update_data(city_list=city_url)
+    await States.city_list.set()
 
     city_id_callback = callback.data
     await States.city_state_id.set()

@@ -15,11 +15,11 @@ storage = MemoryStorage()
 dp = Dispatcher(bot=bot, storage=storage)
 
 
-async def send_notification(user_id, message):
-    keyboard_map = types.InlineKeyboardMarkup()
-    band_button = types.InlineKeyboardButton(text="Напрямок ракет 🚀", url="https://de-raketa.info/")
-    keyboard_map.add(band_button)
-    await bot.send_message(chat_id=user_id, text=message, reply_markup=keyboard_map)
+async def send_notification(user_id, message, keyboard=None):
+    if keyboard:
+        await bot.send_message(chat_id=user_id, text=message, reply_markup=keyboard)
+    else:
+        await bot.send_message(chat_id=user_id, text=message)
 
 
 async def alertlive_func():
@@ -31,7 +31,7 @@ async def alertlive_func():
         try:
             async for event in event_source:
                 if event.type == "hello":
-                    print("SSE Conected sucsessfully")
+                    print("SSE Connected successfully")
                 if event.type == "update":
                     data = json.loads(event.data)
                     state = data["state"]
@@ -40,15 +40,19 @@ async def alertlive_func():
                     city_url = alert.city_list_alert.get(str(state["id"]))
                     if id_list_changes:
                         for user_id in id_list_changes:
-                            if state["alert"] is False:
-                                if db.is_alert_on(user_id):
+                            if db.is_alert_on(user_id):
+                                if state["alert"] is False:
                                     await send_notification(user_id[0],
-                                                            'Відбій повітряної тривоги у {} оласті. 🔕'.format(
+                                                            'Відбій повітряної тривоги у {} області. 🔕'.format(
                                                                 city_url))
-                            elif state["alert"] is True:
-                                if db.is_alert_on(user_id):
+                                elif state["alert"] is True:
+                                    keyboard_map = types.InlineKeyboardMarkup()
+                                    band_button = types.InlineKeyboardButton(text="Напрямок ракет 🚀",
+                                                                             url="https://de-raketa.info/")
+                                    keyboard_map.add(band_button)
                                     await send_notification(user_id[0],
                                                             'Увага! Повітряна тривога у {} області. Негайно перейдіть до найближчого укриття! 🔔'.format(
-                                                                city_url))
+                                                                city_url),
+                                                            keyboard_map)
         except ConnectionError:
             pass
