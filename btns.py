@@ -54,7 +54,6 @@ ocupant_geo_sent = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 button_ocupant_geo_send = types.KeyboardButton("Надіслати геолокацію 📍", request_location=True)
 button_ocupant_sposib = types.KeyboardButton("Назад ◀️")
 ocupant_geo_sent.add(button_ocupant_geo_send, button_ocupant_sposib)
-
 send = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 send_btn = types.KeyboardButton("Надіслати ✉️")
 del_btn = types.KeyboardButton("Видалити 🗑")

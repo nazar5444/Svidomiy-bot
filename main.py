@@ -327,28 +327,28 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.photo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_geo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.send_state)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_send)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
 
 
 @dp.message_handler(Text(equals="Окупант ⚔"), state="*")
@@ -960,28 +960,28 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.photo_bomb)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_geo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.send_bomb_state)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_send)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
 
 
 @dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state=States.bomb_send)
