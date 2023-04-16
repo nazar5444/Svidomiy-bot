@@ -27,7 +27,7 @@ button_menu = types.KeyboardButton("Повернутися в головне м�
 menu.add(button_menu)
 
 menu_ocup_back = types.ReplyKeyboardMarkup(resize_keyboard=True)
-button_menu_ocup_back = types.KeyboardButton("Вибрати інший спосіб ◀️")
+button_menu_ocup_back = types.KeyboardButton("Назад ◀️")
 menu_ocup_back.add(button_menu_ocup_back)
 
 keyboard_aid = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
@@ -38,25 +38,25 @@ keyboard_aid.add(button_injury, button_bad, button_menu)
 ocupant_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 button_ocupant_photo = types.KeyboardButton("Прикріпити фотографію 📷")
 button_ocupant_geo = types.KeyboardButton("Прикріпити геолокацію 📍")
-button_check = types.KeyboardButton("Перевірити інформацію ✅")
+button_check = types.KeyboardButton("Надіслати інформацію ✉")
 button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
 ocupant_menu.add(button_ocupant_photo, button_ocupant_geo, button_check, button_menu)
 
 bomb_send_menu = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 button_ocupant_photo = types.KeyboardButton("Прикріпити фотографію 📷")
 button_ocupant_geo = types.KeyboardButton("Прикріпити геолокацію 📍")
-button_check = types.KeyboardButton("Перевірити інформацію ✅")
+button_check = types.KeyboardButton("Надіслати інформацію ✉")
 button_menu = types.KeyboardButton("Назад ◀️")
 bomb_send_menu.add(button_ocupant_photo, button_ocupant_geo, button_check, button_menu)
 
 
 ocupant_geo_sent = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 button_ocupant_geo_send = types.KeyboardButton("Надіслати геолокацію 📍", request_location=True)
-button_ocupant_sposib = types.KeyboardButton("Вибрати інший спосіб ◀️   ")
+button_ocupant_sposib = types.KeyboardButton("Назад ◀️")
 ocupant_geo_sent.add(button_ocupant_geo_send, button_ocupant_sposib)
 
 send = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
 send_btn = types.KeyboardButton("Надіслати ✉️")
 del_btn = types.KeyboardButton("Видалити 🗑")
-button_ocupant_sposib = types.KeyboardButton("Вибрати інший спосіб ◀️")
+button_ocupant_sposib = types.KeyboardButton("Назад ◀️")
 send.add(send_btn, del_btn, button_ocupant_sposib)

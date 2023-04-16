@@ -121,7 +121,7 @@ async def phone(message: types.Message):
 @dp.message_handler(Text(equals="Снаряд 💣"), state="*")
 async def back(message: types.Message):
     if message.text == "Снаряд 💣":
-        await bot.send_message(message.chat.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
+        await bot.send_message(message.chat.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
                                reply_markup=btns.bomb_menu)
 
 
@@ -141,7 +141,7 @@ async def back(message: types.Message):
         button_bad = types.KeyboardButton(text="Сповіщення 💬")
         button_menu = types.KeyboardButton("Повернутися в головне меню ◀️")
         keyboard_aid.add(button_bad, button_injury, button_menu)
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
                                reply_markup=keyboard_aid)
 
 
@@ -265,7 +265,7 @@ async def unban_user(callback_query: types.CallbackQuery):
     await bot.answer_callback_query(callback_query.id, text="Користувач був розблокований. 🔓")
 
 
-@dp.message_handler(Text(equals="Перевірити інформацію ✅"), state=States.ocup_send)
+@dp.message_handler(Text(equals="Надіслати інформацію ✉"), state=States.ocup_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
@@ -324,30 +324,30 @@ async def back(message: types.Message):
         await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.photo)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.photo)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.ocup_geo)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_geo)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.send_state)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.send_state)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.ocup_send)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_send)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.ocupant_menu)
 
 
@@ -511,7 +511,7 @@ async def smstrivoga(message: types.Message):
     else:
         alert_status = "🔇"
 
-    message_text = f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: {alert_status}"
+    message_text = f"За допомогою кнопок нижче ви можете включити або виключити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: {alert_status}"
     await bot.send_message(user_id, message_text, reply_markup=keyboard_ban)
 
 
@@ -529,7 +529,7 @@ async def nextprs_btn(callback: types.CallbackQuery):
     message_text = "Сповіщення про тривогу включені. 🔈"
     await bot.answer_callback_query(callback.id, text=message_text)
     await bot.edit_message_text(chat_id=user_id, message_id=callback.message.message_id,
-                                text=f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔈",
+                                text=f"За допомогою кнопок нижче ви можете включити або виключити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔈",
                                 reply_markup=types.InlineKeyboardMarkup().add(
                                     types.InlineKeyboardButton(text="Вкл. 🔈", callback_data="alert_on"),
                                     types.InlineKeyboardButton(text="Викл. 🔇", callback_data="alert_off")
@@ -550,7 +550,7 @@ async def nextprs_btn(callback: types.CallbackQuery):
     message_text = "Сповіщення про тривогу виключені. 🔇"
     await bot.answer_callback_query(callback.id, text=message_text)
     await bot.edit_message_text(chat_id=user_id, message_id=callback.message.message_id,
-                                text=f"За допомогою кнопок нижче ви можете включити або включити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔇",
+                                text=f"За допомогою кнопок нижче ви можете включити або виключити сповіщення про повітряну тривогу у вашому місті. \n\nСтатус: 🔇",
                                 reply_markup=types.InlineKeyboardMarkup().add(
                                     types.InlineKeyboardButton(text="Вкл. 🔈", callback_data="alert_on"),
                                     types.InlineKeyboardButton(text="Викл. 🔇", callback_data="alert_off")
@@ -655,7 +655,7 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Перша допомога 🏥"), state="*")
 async def back(message: types.Message):
     if message.text == "Перша допомога 🏥":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт за допомогою кнопок нижче.",
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
                                reply_markup=btns.keyboard_aid)
 
 
@@ -898,7 +898,7 @@ async def phone(message: types.Message):
                                reply_markup=takg)
 
 
-@dp.message_handler(Text(equals="Перевірити інформацію ✅"), state=States.bomb_send)
+@dp.message_handler(Text(equals="Надіслати інформацію ✉"), state=States.bomb_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
@@ -957,30 +957,30 @@ async def back(message: types.Message):
         await States.bomb_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.photo_bomb)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.photo_bomb)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.bomb_geo)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_geo)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.send_bomb_state)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.send_bomb_state)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
-@dp.message_handler(Text(equals="Вибрати інший спосіб ◀️"), state=States.bomb_send)
+@dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_send)
 async def back(message: types.Message):
-    if message.text == "Вибрати інший спосіб ◀️":
+    if message.text == "Назад ◀️":
         await bot.send_message(message.from_user.id, "Виберіть потрібний спосіб:", reply_markup=btns.bomb_send_menu)
 
 
