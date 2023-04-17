@@ -128,7 +128,7 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Перевірити 🔍"), state="*")
 async def back(message: types.Message):
     if message.text == "Перевірити 🔍":
-        await bot.send_message(message.chat.id, "Надішліть фото для роспізнання. Результати можуть бути не точними!",
+        await bot.send_message(message.chat.id, "Надішліть фото для розпізнавання. Результати можуть бути не точними!",
                                reply_markup=btns.keyboard_back)
         await States.bomb_photo.set()
 
