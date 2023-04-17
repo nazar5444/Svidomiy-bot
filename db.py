@@ -17,7 +17,7 @@ async def db_start():
 
     cur.execute(
         "CREATE TABLE IF NOT EXISTS users(user_id BIGINT PRIMARY KEY, city_id TEXT, phone_number TEXT, verified TEXT, photo TEXT, "
-        "geo_lat TEXT, geo_long TEXT, banned INTEGER, alert_state INTEGER, description TEXT)")
+        "geo_lat TEXT, geo_long TEXT, banned INTEGER, alert_state INTEGER, description TEXT, photo_bomb TEXT, geo_lat_bomb TEXT, geo_long_bomb TEXT, description_bomb TEXT)")
     conn.commit()
 
 
@@ -27,9 +27,9 @@ async def profile(user_id, verified):
     user = cur.fetchone()
     if not user:
         cur.execute(
-            "INSERT INTO users (user_id, phone_number, verified, photo, geo_lat, geo_long, banned, alert_state, description) "
-            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)",
-            (user_id, " ", verified, '', " ", "", 0, 0, ""))
+            "INSERT INTO users (user_id, phone_number, verified, photo, geo_lat, geo_long, banned, alert_state, description, photo_bomb, geo_lat_bomb, geo_long_bomb, description_bomb) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)",
+            (user_id, " ", verified, '', " ", "", 0, 0, "", "", "", "", ""))
     conn.commit()
 
 
@@ -165,3 +165,71 @@ def is_alert_on(user_id):
     cur.execute("SELECT alert_state FROM users WHERE user_id = %s", (user_id,))
     result = cur.fetchone()
     return result is not None and result[0] == 1
+
+
+async def photo_bomb_add(user_id, photo_bomb):
+    cur.execute("UPDATE users SET photo_bomb = '{}' WHERE user_id = '{}'".format(photo_bomb, user_id))
+    conn.commit()
+
+
+async def photo_bomb_get(user_id):
+    cur.execute("SELECT photo_bomb FROM users WHERE user_id = '{}'".format(user_id))
+    row = cur.fetchone()
+    conn.commit()
+    return row[0]
+
+
+async def photo_bomb_delete(user_id):
+    cur.execute("UPDATE users SET photo_bomb = NULL WHERE user_id = '{}'".format(user_id))
+    conn.commit()
+
+
+async def lat_bomb_add(user_id, geo_lat_bomb):
+    cur.execute("UPDATE users SET geo_lat_bomb = '{}' WHERE user_id = '{}'".format(geo_lat_bomb, user_id))
+    conn.commit()
+
+
+async def lat_bomb_get(user_id):
+    cur.execute("SELECT geo_lat_bomb FROM users WHERE user_id = '{}'".format(user_id))
+    row = cur.fetchone()
+    conn.commit()
+    return row[0]
+
+
+async def lat_bomb_delete(user_id):
+    cur.execute("UPDATE users SET geo_lat_bomb = NULL WHERE user_id = '{}'".format(user_id))
+    conn.commit()
+
+
+async def long_bomb_add(user_id, geo_long_bomb):
+    cur.execute("UPDATE users SET geo_long_bomb = '{}' WHERE user_id = '{}'".format(geo_long_bomb, user_id))
+    conn.commit()
+
+
+async def long_bomb_get(user_id):
+    cur.execute("SELECT geo_long_bomb FROM users WHERE user_id = '{}'".format(user_id))
+    row = cur.fetchone()
+    conn.commit()
+    return row[0]
+
+
+async def long_bomb_delete(user_id):
+    cur.execute("UPDATE users SET geo_long_bomb = NULL WHERE user_id = '{}'".format(user_id))
+    conn.commit()
+
+
+async def description_bomb_add(user_id, description_bomb):
+    cur.execute("UPDATE users SET description_bomb = %s WHERE user_id = %s", (description_bomb, user_id))
+    conn.commit()
+
+
+async def description_bomb_get(user_id):
+    cur.execute("SELECT description_bomb FROM users WHERE user_id = %s", (user_id,))
+    row = cur.fetchone()
+    conn.commit()
+    return row[0]
+
+
+async def description_bomb_delete(user_id):
+    cur.execute("UPDATE users SET description_bomb = NULL WHERE user_id = %s", (user_id,))
+    conn.commit()

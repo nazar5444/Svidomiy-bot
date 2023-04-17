@@ -217,7 +217,7 @@ async def send_ocup_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, d
                          reply_markup=keyboard_ban)
 
 
-async def send_bomb_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data):
+async def send_bomb_to_admin(user_id, photo_data_bomb, geo_lat_data_bomb, geo_long_data_bomb, description_data_bomb):
     keyboard_ban = types.InlineKeyboardMarkup()
     ban_button = types.InlineKeyboardButton(text="Заблокувати 🔒", callback_data=f"ban:{user_id}")
     unban_button = types.InlineKeyboardButton(text="Розблокувати 🔓", callback_data=f"unban:{user_id}")
@@ -225,10 +225,10 @@ async def send_bomb_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, d
     send_button = types.InlineKeyboardButton(text="Надіслано ✅", callback_data=f"sendmessage:{user_id}")
     keyboard_ban.add(ban_button, unban_button, deldat_button, send_button)
     admin_id = 5517129511
-    lat = geo_lat_data
-    long = geo_long_data
-    dsc = description_data
-    await bot.send_photo(chat_id=admin_id, photo=photo_data,
+    lat = geo_lat_data_bomb
+    long = geo_long_data_bomb
+    dsc = description_data_bomb
+    await bot.send_photo(chat_id=admin_id, photo=photo_data_bomb,
                          caption=f"User ID: {user_id}\n\nПоложення снаряду за:\nДовготою: {lat} \nШиротою: {long} \n\nОпис: {dsc}",
                          reply_markup=keyboard_ban)
 
@@ -248,6 +248,10 @@ async def del_user(callback_query: types.CallbackQuery):
     await db.long_delete(user_id=user_id)
     await db.description_delete(user_id=user_id)
     await db.del_profile(user_id=user_id)
+    await db.photo_bomb_delete(user_id=user_id)
+    await db.lat_bomb_delete(user_id=user_id)
+    await db.long_bomb_delete(user_id=user_id)
+    await db.description_bomb_delete(user_id=user_id)
     await bot.answer_callback_query(callback_query.id, text="Данні були видалені. 🗑")
 
 
@@ -279,8 +283,16 @@ async def back(message: types.Message):
     geo_lat_data = await db.lat_get(user_id=user_id)
     geo_long_data = await db.long_get(user_id=user_id)
     description_data = await db.description_get(user_id=user_id)
-    if not photo_data or not geo_lat_data or not geo_long_data or not description_data:
+    if not photo_data and not geo_lat_data and not geo_long_data and not description_data:
         await bot.send_message(user_id, "Будь ласка, надішліть фото та геолокацію, щоб продовжити.")
+        return
+
+    if not photo_data and not description_data:
+        await bot.send_message(user_id, "Будь ласка, надішліть фото, щоб продовжити.")
+        return
+
+    if not geo_lat_data and not geo_long_data:
+        await bot.send_message(user_id, "Будь ласка, надішліть геолокацію, щоб продовжити.")
         return
 
     lat = geo_lat_data
@@ -327,28 +339,32 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.photo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_geo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.send_state)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.ocupant_menu)
         await States.ocup_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.ocup_send)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.ocupant_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.ocupant_menu)
 
 
 @dp.message_handler(Text(equals="Окупант ⚔"), state="*")
@@ -626,7 +642,6 @@ async def prewprs_btn(callback: types.CallbackQuery):
 @dp.callback_query_handler(state="*")
 async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
     city_url = alert.city_list.get(callback.data)
-    city_url_alert = alert.city_list_alert.get(callback.data)
     await state.update_data(city_list=city_url)
     await States.city_list.set()
 
@@ -908,19 +923,28 @@ async def back(message: types.Message):
         await bot.send_message(user_id, "Ви були заблоковані. Зверніться до адміністратора.", reply_markup=keyboard_ban)
         return
 
-    photo_data = await db.photo_get(user_id=user_id)
-    geo_lat_data = await db.lat_get(user_id=user_id)
-    geo_long_data = await db.long_get(user_id=user_id)
-    description_data = await db.description_get(user_id=user_id)
-    if not photo_data or not geo_lat_data or not geo_long_data or not description_data:
+    photo_data_bomb = await db.photo_bomb_get(user_id=user_id)
+    geo_lat_data_bomb = await db.lat_bomb_get(user_id=user_id)
+    geo_long_data_bomb = await db.long_bomb_get(user_id=user_id)
+    description_data_bomb = await db.description_bomb_get(user_id=user_id)
+
+    if not photo_data_bomb and not geo_lat_data_bomb and not geo_long_data_bomb and not description_data_bomb:
         await bot.send_message(user_id, "Будь ласка, надішліть фото та геолокацію, щоб продовжити.")
         return
 
-    lat = geo_lat_data
-    long = geo_long_data
-    dsc = description_data
+    if not photo_data_bomb and not description_data_bomb:
+        await bot.send_message(user_id, "Будь ласка, надішліть фото, щоб продовжити.")
+        return
 
-    await bot.send_photo(chat_id=user_id, photo=photo_data,
+    if not geo_lat_data_bomb and not geo_long_data_bomb:
+        await bot.send_message(user_id, "Будь ласка, надішліть геолокацію, щоб продовжити.")
+        return
+
+    lat = geo_lat_data_bomb
+    long = geo_long_data_bomb
+    dsc = description_data_bomb
+
+    await bot.send_photo(chat_id=user_id, photo=photo_data_bomb,
                          caption=f"Положення снаряду за:\n\nДовготою: {lat} \nШиротою: {long}\n\n Опис: {dsc}")
     reply = "Якщо всі данні були вказано вірно, натисніть на конпку: Надіслати"
     await message.answer(reply, reply_markup=btns.send)
@@ -931,15 +955,15 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Надіслати ✉️":
         user_id = message.from_user.id
-        photo_data = await db.photo_get(user_id=user_id)
-        geo_lat_data = await db.lat_get(user_id=user_id)
-        geo_long_data = await db.long_get(user_id=user_id)
-        description_data = await db.description_get(user_id=user_id)
-        await send_bomb_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, description_data)
-        await db.photo_delete(user_id=user_id)
-        await db.lat_delete(user_id=user_id)
-        await db.long_delete(user_id=user_id)
-        await db.description_delete(user_id=user_id)
+        photo_bomb_data = await db.photo_bomb_get(user_id=user_id)
+        geo_bomb_lat_data = await db.lat_bomb_get(user_id=user_id)
+        geo_bomb_long_data = await db.long_bomb_get(user_id=user_id)
+        description_bomb_data = await db.description_bomb_get(user_id=user_id)
+        await send_bomb_to_admin(user_id, photo_bomb_data, geo_bomb_lat_data, geo_bomb_long_data, description_bomb_data)
+        await db.photo_bomb_delete(user_id=user_id)
+        await db.lat_bomb_delete(user_id=user_id)
+        await db.long_bomb_delete(user_id=user_id)
+        await db.description_bomb_delete(user_id=user_id)
         await bot.send_message(message.chat.id, "Ми отримали ваші данні. Дякую за спіпрацю!",
                                reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
@@ -949,10 +973,10 @@ async def back(message: types.Message):
 async def back(message: types.Message):
     if message.text == "Видалити 🗑":
         user_id = message.from_user.id
-        await db.photo_delete(user_id=user_id)
-        await db.lat_delete(user_id=user_id)
-        await db.long_delete(user_id=user_id)
-        await db.description_delete(user_id=user_id)
+        await db.photo_bomb_delete(user_id=user_id)
+        await db.lat_bomb_delete(user_id=user_id)
+        await db.long_bomb_delete(user_id=user_id)
+        await db.description_bomb_delete(user_id=user_id)
         await bot.send_message(message.chat.id, "Інформація була видалена.", reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
@@ -960,28 +984,32 @@ async def back(message: types.Message):
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.photo_bomb)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_geo)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.send_bomb_state)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.bomb_send_menu)
         await States.bomb_send.set()
 
 
 @dp.message_handler(Text(equals="Назад ◀️"), state=States.bomb_send)
 async def back(message: types.Message):
     if message.text == "Назад ◀️":
-        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.", reply_markup=btns.bomb_send_menu)
+        await bot.send_message(message.from_user.id, "Оберіть потрібний пункт меню за допомогою кнопок нижче.",
+                               reply_markup=btns.bomb_send_menu)
 
 
 @dp.message_handler(Text(equals="Прикріпити фотографію 📷"), state=States.bomb_send)
@@ -1000,14 +1028,14 @@ async def back(message: types.Message):
 
 @dp.message_handler(content_types=ContentType.PHOTO, state=States.photo_bomb)
 async def photo(message: types.Message):
-    await db.photo_add(user_id=message.from_user.id, photo=message.photo[0].file_id)
+    await db.photo_bomb_add(user_id=message.from_user.id, photo_bomb=message.photo[0].file_id)
     await States.description_bomb.set()
     await bot.send_message(message.chat.id, "Додайте опис для фото:")
 
 
 @dp.message_handler(state=States.description_bomb)
 async def description(message: types.Message):
-    await db.description_add(user_id=message.from_user.id, description=message.text)
+    await db.description_bomb_add(user_id=message.from_user.id, description_bomb=message.text)
     await bot.send_message(message.chat.id, "Ви прикріпили фото.", reply_markup=btns.bomb_send_menu)
     await States.bomb_send.set()
 
@@ -1016,8 +1044,8 @@ async def description(message: types.Message):
 async def ocup_geo(message: types.Message):
     geoloclat = message.location.latitude
     geoloclong = message.location.longitude
-    await db.lat_add(user_id=message.from_user.id, geo_lat=geoloclat)
-    await db.long_add(user_id=message.from_user.id, geo_long=geoloclong)
+    await db.lat_bomb_add(user_id=message.from_user.id, geo_lat_bomb=geoloclat)
+    await db.long_bomb_add(user_id=message.from_user.id, geo_long_bomb=geoloclong)
     await bot.send_message(message.chat.id, "Ви прикріпили геолокацію.", reply_markup=btns.bomb_send_menu)
     await States.bomb_send.set()
 
