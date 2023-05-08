@@ -20,7 +20,7 @@ import text
 from db import db_start
 from detection import tokenizer, preprocess, model
 
-TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
+TOKEN = "6222597497:AAEdR8JaH1N62AEkkEoOxXBziJvfPStQvKQ"
 
 bot = Bot(token=TOKEN, parse_mode="html")
 storage = MemoryStorage()
@@ -272,7 +272,7 @@ async def unban_user(callback_query: types.CallbackQuery):
 @dp.message_handler(Text(equals="Надіслати інформацію ✉"), state=States.ocup_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
-    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
+    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Diznaysa_Admin")
     keyboard_ban.add(ban_button)
     user_id = message.from_user.id
     if db.is_banned(user_id):
@@ -485,7 +485,7 @@ async def handle(message: types.Message) -> None:
     city7 = InlineKeyboardButton(text="Київська обл.", callback_data="9")
     next_btn = InlineKeyboardButton(text="Вперед ➡", callback_data="nextb")
     citichoose = InlineKeyboardMarkup(row_width=2).add(city, city1, city2, city3, city4, city5, city6, city7, next_btn)
-    with open("photos/IMG_20230219_011909_687.jpg", 'rb') as logo:
+    with open("photos/logo.png", 'rb') as logo:
         await bot.send_photo(chat_id=message.from_user.id, photo=logo,
                              caption=f"Вітаю Вас у нашому чат-боті! Тут зібрані різні корисні функції, які допоможуть "
                                      f"вам під час воєнного стану 🇺🇦")
@@ -660,7 +660,7 @@ async def city_cd_handler(callback: types.CallbackQuery, state: FSMContext):
 async def back(message: types.Message):
     if message.text == "Тех.підтримка 🛠":
         keyboard_ban = types.InlineKeyboardMarkup()
-        ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
+        ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Diznaysa_Admin")
         keyboard_ban.add(ban_button)
         await bot.send_message(message.from_user.id,
                                "Для контакту з Адміністрацією чат-боту напишіть на контакти вказані нижче.",
@@ -916,7 +916,7 @@ async def phone(message: types.Message):
 @dp.message_handler(Text(equals="Надіслати інформацію ✉"), state=States.bomb_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
-    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Svidomiy_Admin")
+    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Diznaysa_Admin")
     keyboard_ban.add(ban_button)
     user_id = message.from_user.id
     if db.is_banned(user_id):
