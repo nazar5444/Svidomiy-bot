@@ -8,7 +8,7 @@ from aiohttp_sse_client import client as sse_client
 import alert
 import db
 
-TOKEN = "5636715243:AAGoPgmHYLVPiUAEsLe5xQigPN8vCVQNQs8"
+TOKEN = "6222597497:AAEdR8JaH1N62AEkkEoOxXBziJvfPStQvKQ"
 
 bot = Bot(token=TOKEN, parse_mode="html")
 storage = MemoryStorage()
