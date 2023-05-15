@@ -3,8 +3,8 @@ import json
 from aiogram import types
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiohttp import ClientPayloadError
 from aiohttp_sse_client import client as sse_client
-
 import alert
 import db
 
@@ -55,4 +55,6 @@ async def alertlive_func():
                                                                 city_url),
                                                             keyboard_map)
         except ConnectionError:
+            pass
+        except ClientPayloadError:
             pass
