@@ -208,7 +208,7 @@ async def send_ocup_to_admin(user_id, photo_data, geo_lat_data, geo_long_data, d
     deldat_button = types.InlineKeyboardButton(text="Очистити 🗑", callback_data=f"deldata:{user_id}")
     send_button = types.InlineKeyboardButton(text="Надіслано ✅", callback_data=f"sendmessage:{user_id}")
     keyboard_ban.add(ban_button, unban_button, deldat_button, send_button)
-    admin_id = 5517129511
+    admin_id = 5999847063
     lat = geo_lat_data
     long = geo_long_data
     dsc = description_data
@@ -224,7 +224,7 @@ async def send_bomb_to_admin(user_id, photo_data_bomb, geo_lat_data_bomb, geo_lo
     deldat_button = types.InlineKeyboardButton(text="Очистити 🗑", callback_data=f"deldata:{user_id}")
     send_button = types.InlineKeyboardButton(text="Надіслано ✅", callback_data=f"sendmessage:{user_id}")
     keyboard_ban.add(ban_button, unban_button, deldat_button, send_button)
-    admin_id = 5517129511
+    admin_id = 5999847063
     lat = geo_lat_data_bomb
     long = geo_long_data_bomb
     dsc = description_data_bomb
@@ -272,7 +272,7 @@ async def unban_user(callback_query: types.CallbackQuery):
 @dp.message_handler(Text(equals="Надіслати інформацію ✉"), state=States.ocup_send)
 async def back(message: types.Message):
     keyboard_ban = types.InlineKeyboardMarkup()
-    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Diznaysa_Admin")
+    ban_button = types.InlineKeyboardButton(text="Контакти", url="https://t.me/Diznaiysa_Admin")
     keyboard_ban.add(ban_button)
     user_id = message.from_user.id
     if db.is_banned(user_id):
